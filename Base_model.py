@@ -21,7 +21,7 @@ class Model:
         """
         Generate a crew of chimps as an agent
         """
-        pos = (np.random.randint(0,self.grid_size),0)
+        pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
         size = 1
         energy = 0
         new_crew = Chimp_crew(id, pos, size, energy)
@@ -31,7 +31,7 @@ class Model:
         """
         Generate a new oasis
         """
-        pos = (np.random.randint(0,self.grid_size),0)
+        pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
         size = 1
         new_oasis = Oasis(id, pos, size)
         return new_oasis
@@ -61,8 +61,9 @@ class Model:
                 # When arriving at an oasis attach it to the agent
                 else:
                     for oasis in self.oases.values():
-                        if oasis.pos == (crew.X, crew.Y):
+                        if oasis.pos == (crew.X, crew.Y) and not oasis.occupied:
                             crew.oasis = oasis
+                            oasis.occupied = True
                             self.grid[crew.X, crew.Y] = 3
             
             # If at an oasis, consume
