@@ -5,15 +5,23 @@ def euclidean_distance(pos1, pos2):
     return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
 
 class Model:
-    #def __init__(self, grid_length, num_crews, num_oases):
     def __init__(self, n_crews, n_oases, grid_size):
+        '''
+        n_crews (int): number of initial chimp crews
+        n_oases (int): number of initial oases
+        grid_size(int): length of the edge of the square grid
+        '''
         self.grid_size = grid_size
         self.crews = [self.add_chimp_crew(id) for id  in range(n_crews)]
-        self.oases = [self.add_oasis(id) for id in range(n_oases)]
+        self.oases = {id: self.add_oasis(id) for id in range(n_oases)}
+        print(self.oases)
         self.grid = self.create_grid()
         pass
 
     def add_chimp_crew(self, id):
+        """
+        Generate a crew of chimps as an agent
+        """
         pos = (1,2)             #TODO: adjust attributes of crew
         size = 1
         energy = 0
@@ -21,34 +29,55 @@ class Model:
         return new_crew
 
     def add_oasis(self, id):
-        pos = (0,0)
+        """
+        Generate a new oasis
+        """
+        pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
         size = 1
         new_oasis = Oasis(id, pos, size)
         return new_oasis
     
     def run(self):
+        """
+        Run the model for one time-step
+
+        """
+        ids = []
+        for oasis in self.oases.values():
+            if oasis.resource <= 0:
+                ids.append(oasis.id)
+        for id in ids:
+            del self.oases[id]
         for crew in self.crews:
+
+            # Only move if not feeding at an oasis
             if not crew.oasis:
                 X_old, Y_old = crew.pos
-                crew.move(self.grid_size, self.oases, self.crews)
+                crew.move(self.grid_size, self.oases.values(), self.crews)
                 self.grid[X_old, Y_old] = 0
                 if not self.grid[crew.X, crew.Y] == 2:
                     self.grid[crew.X, crew.Y] = 1       #TODO: chimp + oasis
+                
+
+                # When arriving at an oasis attach it to the agent
                 else:
-                    for oasis in self.oases:
-                        print(oasis.pos)
+                    for oasis in self.oases.values():
                         if oasis.pos == (crew.X, crew.Y):
                             crew.oasis = oasis
                             print(vars(crew))
                             self.grid[crew.X, crew.Y] = 3
+            
+            # If at an oasis, consume
             else:
                 crew.consume()
+                if crew.oasis == None:
+                    self.grid[crew.X, crew.Y] = 1
         
     def create_grid(self):
         grid = np.zeros((self.grid_size, self.grid_size))
         for crew in self.crews:
             grid[crew.X, crew.Y] = 1
-        for oasis in self.oases:
+        for oasis in self.oases.values():
             grid[oasis.X, oasis.Y] = 2
         return grid
 
@@ -129,12 +158,9 @@ class Chimp_crew(Agent):
 
 
     def move(self, grid_length, oases, crews, motion_accuracy = 100):
-
-        i, j = self.pos
-        neighbourhood = [[i + di, j + dj] for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, 1), (1, -1)] if 0 <= i + di < grid_length and 0 <= j + dj < grid_length]
+        neighbourhood = [[self.X + di, self.Y + dj] for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, 1), (1, -1)] if 0 <= self.X + di < grid_length and 0 <= self.Y + dj < grid_length]
         # here check for neighboring crews to avoid collision
-        other_crews = [crew.pos for crew in crews]
-        available_nbh = [pos for pos in neighbourhood if pos not in other_crews]
+        available_nbh = [pos for pos in neighbourhood if pos not in[crew.pos for crew in crews]]
 
         
         
@@ -174,6 +200,4 @@ class Oasis(Agent):
     def get_consumed(self, amount):
         food = min(amount, self.resource)
         self.resource -= food
-        if self.resource <= 0:
-            self.pos = (None, None)
         return food, self.resource
