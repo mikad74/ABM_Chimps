@@ -12,9 +12,8 @@ class Model:
         grid_size(int): length of the edge of the square grid
         '''
         self.grid_size = grid_size
-        self.crews = [self.add_chimp_crew(id) for id  in range(n_crews)]
+        self.crews = {id: self.add_chimp_crew(id) for id  in range(n_crews)}
         self.oases = {id: self.add_oasis(id) for id in range(n_oases)}
-        print(self.oases)
         self.grid = self.create_grid()
         pass
 
@@ -22,7 +21,7 @@ class Model:
         """
         Generate a crew of chimps as an agent
         """
-        pos = (1,2)             #TODO: adjust attributes of crew
+        pos = (np.random.randint(0,self.grid_size),0)
         size = 1
         energy = 0
         new_crew = Chimp_crew(id, pos, size, energy)
@@ -32,7 +31,7 @@ class Model:
         """
         Generate a new oasis
         """
-        pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
+        pos = (np.random.randint(0,self.grid_size),0)
         size = 1
         new_oasis = Oasis(id, pos, size)
         return new_oasis
@@ -48,12 +47,12 @@ class Model:
                 ids.append(oasis.id)
         for id in ids:
             del self.oases[id]
-        for crew in self.crews:
+        for crew in self.crews.values():
 
             # Only move if not feeding at an oasis
             if not crew.oasis:
                 X_old, Y_old = crew.pos
-                crew.move(self.grid_size, self.oases.values(), self.crews)
+                crew.move(self.grid_size, self.oases.values(), self.crews.values())
                 self.grid[X_old, Y_old] = 0
                 if not self.grid[crew.X, crew.Y] == 2:
                     self.grid[crew.X, crew.Y] = 1       #TODO: chimp + oasis
@@ -64,7 +63,6 @@ class Model:
                     for oasis in self.oases.values():
                         if oasis.pos == (crew.X, crew.Y):
                             crew.oasis = oasis
-                            print(vars(crew))
                             self.grid[crew.X, crew.Y] = 3
             
             # If at an oasis, consume
@@ -75,7 +73,7 @@ class Model:
         
     def create_grid(self):
         grid = np.zeros((self.grid_size, self.grid_size))
-        for crew in self.crews:
+        for crew in self.crews.values():
             grid[crew.X, crew.Y] = 1
         for oasis in self.oases.values():
             grid[oasis.X, oasis.Y] = 2
@@ -183,10 +181,8 @@ class Chimp_crew(Agent):
     def consume(self):
         food, remaining = self.oasis.get_consumed(self.crew_size * 3)
         self.energy += food
-        print(self.oasis.resource, self.energy)
         if remaining <= 0 :
             self.oasis = None
-        print(self.oasis)
         # depending on size, the crew gains energy while oasis loses ressource
 
 
