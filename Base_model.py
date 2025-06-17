@@ -12,9 +12,8 @@ class Model:
         grid_size(int): length of the edge of the square grid
         '''
         self.grid_size = grid_size
-        self.crews = [self.add_chimp_crew(id) for id  in range(n_crews)]
+        self.crews = [self.add_chimp_crew(id) for id in range(n_crews)]
         self.oases = {id: self.add_oasis(id) for id in range(n_oases)}
-        print(self.oases)
         self.grid = self.create_grid()
         pass
 
@@ -64,7 +63,6 @@ class Model:
                     for oasis in self.oases.values():
                         if oasis.pos == (crew.X, crew.Y):
                             crew.oasis = oasis
-                            print(vars(crew))
                             self.grid[crew.X, crew.Y] = 3
             
             # If at an oasis, consume
@@ -183,10 +181,8 @@ class Chimp_crew(Agent):
     def consume(self):
         food, remaining = self.oasis.get_consumed(self.crew_size * 3)
         self.energy += food
-        print(self.oasis.resource, self.energy)
         if remaining <= 0 :
             self.oasis = None
-        print(self.oasis)
         # depending on size, the crew gains energy while oasis loses ressource
 
 
