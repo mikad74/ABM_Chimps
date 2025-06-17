@@ -82,6 +82,28 @@ class Chimp_crew(Agent):
         hard it might be to take it over (cost)
         '''
         # intimidation round
+        
+        '''
+        V = oasis.resource
+        s = crew_size * energy
+        cF = cost of fight
+        cL = cost of losing the fight
+        cI = cost of intimidate
+        
+        q = prob opponent backs down after the agent intimidates
+        q = clip(0.2 + 0.6 * (p - 0.5), 0, 0.9)             0.2 is the threshold
+        
+        p = prob agent wins the fight
+        p = s_self / (s_self + s_other)
+        
+        U_fight      = p·(V - cF)      + (1 - p)·(-cF - cL)
+        U_intimidate = -cI + q·V        + (1 - q)·U_fight
+        U_retreat    = 0                                            ?? or -cR?
+        
+        if U_intimidate ≥ max(U_fight, U_retreat):   INTIMIDATE
+        elif U_fight      ≥ U_retreat:               FIGHT
+        else:                                        RETREAT
+        '''
         pre_utility = [[oasis.ressource - cost_fight, oasis.ressource], [- cost_fight - cost_loss, - cost_loss]] # potential outcomes from a conflict
         # look for equilibrium here
 
