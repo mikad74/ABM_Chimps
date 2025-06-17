@@ -28,21 +28,22 @@ class Model:
     
     def run(self):
         for crew in self.crews:
-            X_old, Y_old = crew.pos
-            #crew.move(self.grid_size, self.grid)
-            crew.move_(self.grid_size, self.oases, self.crews)
-            self.grid[X_old, Y_old] = 0
-            if not self.grid[crew.X, crew.Y] == 2:
-                self.grid[crew.X, crew.Y] = 1       #TODO: chimp + oasis
+            if not crew.oasis:
+                X_old, Y_old = crew.pos
+                #crew.move(self.grid_size, self.grid)
+                crew.move_(self.grid_size, self.oases, self.crews)
+                self.grid[X_old, Y_old] = 0
+                if not self.grid[crew.X, crew.Y] == 2:
+                    self.grid[crew.X, crew.Y] = 1       #TODO: chimp + oasis
+                else:
+                    for oasis in self.oases:
+                        print(oasis.pos)
+                        if oasis.pos == (crew.X, crew.Y):
+                            crew.oasis = oasis
+                            print(vars(crew))
+                            self.grid[crew.X, crew.Y] = 3
             else:
-                for oasis in self.oases:
-                    print(oasis.pos)
-                    if oasis.pos == (crew.X, crew.Y):
-                        crew.oasis = oasis
-                        print(vars(crew))
-                        self.grid[crew.X, crew.Y] = 3
-
-        return 0 
+                crew.consume()
         
     def create_grid(self):
         grid = np.zeros((self.grid_size, self.grid_size))
@@ -159,19 +160,26 @@ class Chimp_crew(Agent):
             # we pick new position randomly from the possible ones, with a probability weight depending on "weights"
             self.pos = random.choices(available_nbh, weights=weights)[0]
     
-    def consume(self, oasis):
+    def consume(self):
+        food, remaining = self.oasis.get_consumed(self.size * 3)
+        self.energy += food
+        print(self.oasis.resources, self.energy)
+        if remaining <= 0 :
+            self.oasis = None
         # depending on size, the crew gains energy while oasis loses ressource
         pass
 
 
 class Oasis(Agent):
-    def __init__(self, id, pos, ressource):
+    def __init__(self, id, pos, resource):
         self.id = id
         self.pos = pos
-        self.ressource = ressource
+        self.resource = resource
         self.occupied = False
     
-    def feed(self, amount):
+    def get_consumed(self, amount):
         food = min(amount, self.resource)
         self.resource -= food
-        return food
+        if self.resources <= 0:
+            self.pos = (None, None)
+        return food, self.resource
