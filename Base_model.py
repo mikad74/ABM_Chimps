@@ -127,16 +127,8 @@ class Chimp_crew(Agent):
         # other crew becomes nomad again and takes an available neighbouring position
         # if loss, crew keeps searching
 
-    def move(self, grid_length, grid): 
-        # Random move function for testing
-        if self.oasis == None:
-            neighbourhood = [[self.X + di, self.Y + dj] for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, 1), (1, -1)] if 0 <= self.X + di < grid_length and 0 <= self.Y + dj < grid_length]
-            choice = neighbourhood[np.random.choice(len(neighbourhood))]
-            while grid[choice[0], choice[1]] == 1:
-                choice = neighbourhood[np.random.choice(len(neighbourhood))]
-            self.pos = choice
 
-    def move_(self, grid_length, oases, crews, motion_accuracy = 1):
+    def move(self, grid_length, oases, crews, motion_accuracy = 100):
 
         i, j = self.pos
         neighbourhood = [[i + di, j + dj] for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, 1), (1, -1)] if 0 <= i + di < grid_length and 0 <= j + dj < grid_length]
@@ -150,14 +142,17 @@ class Chimp_crew(Agent):
             # based on global knowledge of all oases, we pick the closest
             closest_oasis = min(oases, key=lambda oasis: euclidean_distance(oasis.pos, self.pos))
 
-            # we select next position depending on how close it is the oasis we selected
-            weights = np.array([(1-euclidean_distance(closest_oasis.pos, nbh_pos))**motion_accuracy for nbh_pos in available_nbh] )
-
+            distances2oasis = [euclidean_distance(closest_oasis.pos, pos) for pos in available_nbh]
+            
             # the least the distance the higher the chance to be picked as next pos
-            weights /= sum(weights)
+            weights_ = [(1-(dist / sum(distances2oasis)))**motion_accuracy for dist in distances2oasis]
+            weights = [w/sum(weights_) for w in weights_]
 
             # we pick new position randomly from the possible ones, with a probability weight depending on "weights"
             self.pos = random.choices(available_nbh, weights=weights)[0]
+
+        else:
+            self.pos = random.choice(available_nbh)
     
     def consume(self):
         food, remaining = self.oasis.get_consumed(self.crew_size * 3)
