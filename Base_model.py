@@ -29,7 +29,8 @@ class Model:
     def run(self):
         for crew in self.crews:
             X_old, Y_old = crew.pos
-            crew.move(self.grid_size, self.grid)
+            #crew.move(self.grid_size, self.grid)
+            crew.move_(self.grid_size, self.oases, self.crews)
             self.grid[X_old, Y_old] = 0
             if not self.grid[crew.X, crew.Y] == 2:
                 self.grid[crew.X, crew.Y] = 1       #TODO: chimp + oasis
@@ -83,7 +84,7 @@ class Chimp_crew(Agent):
     def __init__(self, id, pos, crew_size=10, initial_energy=100):
         self.crew_size = crew_size # size of crew
         self.id = id
-        self.pos = np.array(pos) # position of the crew on the spatial domain
+        self.pos = pos # position of the crew on the spatial domain
         self.energy = initial_energy # energy of our crew: goes up when the crew is currently occupying a resource rich oasis, goes down whem the crew moves, fights
         self.nomad = True # whether the crew is currently looking for a new source of food
         self.oasis = None
@@ -135,21 +136,22 @@ class Chimp_crew(Agent):
                 choice = neighbourhood[np.random.choice(len(neighbourhood))]
             self.pos = choice
 
-    def move_(self, grid_length, motion_accuracy = 1):
+    def move_(self, grid_length, oases, crews, motion_accuracy = 1):
 
         i, j = self.pos
         neighbourhood = [[i + di, j + dj] for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, 1), (1, -1)] if 0 <= i + di < grid_length and 0 <= j + dj < grid_length]
         # here check for neighboring crews to avoid collision
-        available_nbh = [pos for pos in neighbourhood if pos not in [crew.pos for crew in Model.crews]]
+        other_crews = [crew.pos for crew in crews]
+        available_nbh = [pos for pos in neighbourhood if pos not in other_crews]
 
         
         
-        if available_nbh and Model.oases:
+        if available_nbh and oases:
             # based on global knowledge of all oases, we pick the closest
-            closest_oasis = min(Model.oases, key=lambda oasis: euclidean_distance(oasis.pos, self.pos))
+            closest_oasis = min(oases, key=lambda oasis: euclidean_distance(oasis.pos, self.pos))
 
             # we select next position depending on how close it is the oasis we selected
-            weights = [(1-euclidean_distance(closest_oasis.pos, nbh_pos))**motion_accuracy for nbh_pos in available_nbh] 
+            weights = np.array([(1-euclidean_distance(closest_oasis.pos, nbh_pos))**motion_accuracy for nbh_pos in available_nbh] )
 
             # the least the distance the higher the chance to be picked as next pos
             weights /= sum(weights)
