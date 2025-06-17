@@ -1,10 +1,31 @@
 import numpy as np
 
 class Model:
-    def add_chimpcrew(crews):
-        i =1
+    def __init__(self, n_crews, n_oases):
+        self.crews = [self.add_chimpcrew() for n  in range(n_crews)]
+        self.oases = [self.add_oasis() for n in range(n_oases)]
+        pass
+
+    def add_chimp_crew(self):
+        pos = (0,0)             #TODO: adjust attributes of crew
+        size = 0
+        energy = 0
+        new_crew = Chimp_crew(pos, size, energy)
+        return new_crew
         # track chimps
         # track oases
+
+    def add_oasis(self):
+        pos = (0,0)
+        size = 0
+        new_oasis = Oasis(pos, size)
+        return 0
+    
+    def run(self):
+        for crew in self.crews:
+            pass # move
+
+        return 0 
         
 
 class Chimp_crew:
@@ -25,11 +46,10 @@ class Chimp_crew:
 
 
     def step(self):
+        pass
         # motion
         # check for neighboring oases
         # check for oasis status
-        # if occupied, try bluff
-
 
 
 class Oasis:
