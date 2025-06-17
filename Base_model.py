@@ -7,36 +7,48 @@ class Model:
     #def __init__(self, grid_length, num_crews, num_oases):
     def __init__(self, n_crews, n_oases, grid_size):
         self.grid_size = grid_size
-        self.crews = [self.add_chimp_crew() for n  in range(n_crews)]
-        self.oases = [self.add_oasis() for n in range(n_oases)]
+        self.crews = [self.add_chimp_crew(id) for id  in range(n_crews)]
+        self.oases = [self.add_oasis(id) for id in range(n_oases)]
+        self.grid = self.create_grid()
         pass
 
-    def add_chimp_crew(self):
+    def add_chimp_crew(self, id):
         pos = (1,2)             #TODO: adjust attributes of crew
         size = 0
         energy = 0
-        new_crew = Chimp_crew(pos, size, energy)
+        new_crew = Chimp_crew(id, pos, size, energy)
         return new_crew
 
-    def add_oasis(self):
+    def add_oasis(self, id):
         pos = (0,0)
         size = 0
-        new_oasis = Oasis(pos, size)
+        new_oasis = Oasis(id, pos, size)
         return new_oasis
     
     def run(self):
         for crew in self.crews:
-            pass # move
+            X_old, Y_old = crew.pos
+            crew.move(self.grid_size, self.grid)
+            self.grid[X_old, Y_old] = 0
+            if not self.grid[crew.X, crew.Y] == 2:
+                self.grid[crew.X, crew.Y] = 1       #TODO: chimp + oasis
+            else:
+                for oasis in self.oases:
+                    print(oasis.pos)
+                    if oasis.pos == (crew.X, crew.Y):
+                        crew.oasis = oasis
+                        print(vars(crew))
+                        self.grid[crew.X, crew.Y] = 3
 
         return 0 
         
-    def print_grid(self):
+    def create_grid(self):
         grid = np.zeros((self.grid_size, self.grid_size))
         for crew in self.crews:
             grid[crew.X, crew.Y] = 1
         for oasis in self.oases:
             grid[oasis.X, oasis.Y] = 2
-        print(grid)
+        return grid
 
 
         # create chimps crews
@@ -67,8 +79,9 @@ class Agent:
 
 
 class Chimp_crew(Agent):
-    def __init__(self, pos, crew_size=10, initial_energy=100):
+    def __init__(self, id, pos, crew_size=10, initial_energy=100):
         self.crew_size = crew_size # size of crew
+        self.id = id
         self.pos = np.array(pos) # position of the crew on the spatial domain
         self.energy = initial_energy # energy of our crew: goes up when the crew is currently occupying a resource rich oasis, goes down whem the crew moves, fights
         self.nomad = True # whether the crew is currently looking for a new source of food
@@ -112,11 +125,14 @@ class Chimp_crew(Agent):
         # other crew becomes nomad again and takes an available neighbouring position
         # if loss, crew keeps searching
 
-    def move(self, grid_length): 
+    def move(self, grid_length, grid): 
         # Random move function for testing
-        neighbourhood = [[self.X + di, self.Y + dj] for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, 1), (1, -1)] if 0 <= self.X + di < grid_length and 0 <= self.Y + dj < grid_length]
-        print(neighbourhood)
-        self.pos = neighbourhood[np.random.choice(len(neighbourhood))]
+        if self.oasis == None:
+            neighbourhood = [[self.X + di, self.Y + dj] for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, 1), (1, -1)] if 0 <= self.X + di < grid_length and 0 <= self.Y + dj < grid_length]
+            choice = neighbourhood[np.random.choice(len(neighbourhood))]
+            while grid[choice[0], choice[1]] == 1:
+                choice = neighbourhood[np.random.choice(len(neighbourhood))]
+            self.pos = choice
 
     def move_(self, grid_length, motion_accuracy = 100):
 
@@ -135,7 +151,13 @@ class Chimp_crew(Agent):
 
 
 class Oasis(Agent):
-    def __init__(self, pos, ressource):
+    def __init__(self, id, pos, ressource):
+        self.id = id
         self.pos = pos
         self.ressource = ressource
         self.occupied = False
+    
+    def feed(self, amount):
+        food = min(amount, self.resource)
+        self.resource -= food
+        return food
