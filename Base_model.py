@@ -145,6 +145,28 @@ class Chimp_crew(Agent):
         if U_intimidate ≥ max(U_fight, U_retreat):   INTIMIDATE
         elif U_fight      ≥ U_retreat:               FIGHT
         else:                                        RETREAT
+
+        ______________________________
+
+        I thought we said we only decide intimidate/retreat and a fight happens when both decide to intimidate?
+
+        I think we can model this with what we learned in the lecture about prospect theory since we have the
+        case where we need to make a decision that could lead to either a gain or loss from our current energy level.
+        We calculate the utility of fighting with the formula  U(x) = π(pi)v(xi) + π(pj)v(xj) from the lecture.
+        xi being energy gain from the ressource and xj the loss in energy from fighting and losing.
+        I don't know if we really need the parameter cost_loss? I think it's implicit in fighting but not getting the ressource.
+
+        v(xj) includes a positive gain sensitivity parameter and loss aversion parameters. Here we could apply
+        the strategy of the chimps -> risk-seeking agents will have a higher valuation for winning and are more likely to bluff.
+        The weighting function includes the probility of the outcome i.e. the percieved likelihood of winning the fight.
+        We can iteratively modify how p is calculated but I think it needs to include the size of this crew, size of other
+        crew and own energy level. Later we could add fight history for smarter chimps.
+
+        The utility for retreating is just 0 and we decide: 
+        if U_fight ≥ U_retreat = 0:   INTIMIDATE
+        else  RETREAT
+        Let me know that you think!
+
         '''
         pre_utility = [[oasis.ressource - cost_fight, oasis.ressource], [- cost_fight - cost_loss, - cost_loss]] # potential outcomes from a conflict
         # look for equilibrium here
