@@ -15,14 +15,14 @@ class Model:
 
     def add_chimp_crew(self, id):
         pos = (1,2)             #TODO: adjust attributes of crew
-        size = 0
+        size = 1
         energy = 0
         new_crew = Chimp_crew(id, pos, size, energy)
         return new_crew
 
     def add_oasis(self, id):
         pos = (0,0)
-        size = 0
+        size = 1
         new_oasis = Oasis(id, pos, size)
         return new_oasis
     
@@ -30,8 +30,7 @@ class Model:
         for crew in self.crews:
             if not crew.oasis:
                 X_old, Y_old = crew.pos
-                #crew.move(self.grid_size, self.grid)
-                crew.move_(self.grid_size, self.oases, self.crews)
+                crew.move(self.grid_size, self.oases, self.crews)
                 self.grid[X_old, Y_old] = 0
                 if not self.grid[crew.X, crew.Y] == 2:
                     self.grid[crew.X, crew.Y] = 1       #TODO: chimp + oasis
@@ -161,13 +160,13 @@ class Chimp_crew(Agent):
             self.pos = random.choices(available_nbh, weights=weights)[0]
     
     def consume(self):
-        food, remaining = self.oasis.get_consumed(self.size * 3)
+        food, remaining = self.oasis.get_consumed(self.crew_size * 3)
         self.energy += food
-        print(self.oasis.resources, self.energy)
+        print(self.oasis.resource, self.energy)
         if remaining <= 0 :
             self.oasis = None
+        print(self.oasis)
         # depending on size, the crew gains energy while oasis loses ressource
-        pass
 
 
 class Oasis(Agent):
@@ -180,6 +179,6 @@ class Oasis(Agent):
     def get_consumed(self, amount):
         food = min(amount, self.resource)
         self.resource -= food
-        if self.resources <= 0:
+        if self.resource <= 0:
             self.pos = (None, None)
         return food, self.resource
