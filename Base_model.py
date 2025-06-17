@@ -16,14 +16,12 @@ class Model:
         energy = 0
         new_crew = Chimp_crew(pos, size, energy)
         return new_crew
-        # track chimps
-        # track oases
 
     def add_oasis(self):
         pos = (0,0)
         size = 0
         new_oasis = Oasis(pos, size)
-        return 0
+        return new_oasis
     
     def run(self):
         for crew in self.crews:
@@ -84,19 +82,6 @@ class Chimp_crew:
     
     def consume(self, oasis):
         # depending on size, the crew gains energy while oasis loses ressource
-
-
-
-
-<<<<<<< HEAD
-    def step(self):
-        pass
-        # motion
-        # check for neighboring oases
-        # check for oasis status
-=======
-
->>>>>>> 053225840339de3524bc49a641717bfacc674681
 
 
 class Oasis:
