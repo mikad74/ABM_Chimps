@@ -19,7 +19,7 @@ class Model:
         for _ in range(n_crews):
             self.add_chimp_crew()
         for _ in range(n_oases):
-            self.add_oasis
+            self.add_oasis()
         self.grid = self.create_grid()
         pass
 
@@ -27,8 +27,10 @@ class Model:
         """
         Generate a crew of chimps as an agent
         """
-        if not pos:
+        if not pos or any(crew.pos == pos for crew in self.crews.values()):
             pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
+            while any(crew.pos == pos for crew in self.crews.values()):
+                pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
         id = next(self.id_gen)
         size = 1
         energy = 0
@@ -41,8 +43,10 @@ class Model:
         Generate a new oasis
         """
         id = next(self.id_gen)
-        if not pos:
+        if not pos or any(oasis.pos == pos for oasis in self.oases.values()):
             pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
+            while any(oasis.pos == pos for oasis in self.oases.values()):
+                pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
         size = 1
         new_oasis = Oasis(id, pos, size)
         self.oases[id] = new_oasis
