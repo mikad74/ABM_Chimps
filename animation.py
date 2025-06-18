@@ -2,14 +2,8 @@ from Base_model import *
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
-n_sim = 100
-model = Model(20, 20, 50)
-# model.add_oasis((2,2))
-# model.add_chimp_crew((0,1))
-# model.add_chimp_crew((1,0))
-# model.add_chimp_crew((1,2))
-# model.add_chimp_crew((2,1))
-# model.grid = model.create_grid()
+n_sim = 80
+model = Model(5, 20, 20)
 fig, ax = plt.subplots()
 img = ax.imshow(model.grid)
 
@@ -17,6 +11,10 @@ def update_ani(frame):
     model.run()
     img.set_array(model.grid)
     ax.set_title(f"Time Step: {frame}")
+    # for oasis in model.oases.values():
+    #     print(vars(oasis))
+    # for crew in model.crews.values():
+    #     print(vars(crew))
     return [img]
 
 ani = animation.FuncAnimation(fig, update_ani, frames=n_sim, interval=1, blit=False)
