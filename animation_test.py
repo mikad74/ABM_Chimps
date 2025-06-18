@@ -18,14 +18,14 @@ dark_purple_cmap = LinearSegmentedColormap.from_list(
     'dark_purple', ["#29044e", "#29044e","#29044e","#29044e"], N=256
 )
 
-n_sim = 500
-model = Model(5, 20, 20)
+n_sim = 200
+model = Model(5, 100, 40)
 
 fig, ax = plt.subplots()
 img = ax.imshow(model.grid, cmap=dark_purple_cmap)
 
 # Scatter plots for each value
-scatter_2 = ax.scatter([], [], marker='d', c='white', s=100)  # hexagon
+scatter_2 = ax.scatter([], [], marker='*', c='white', s=100)  # hexagon
 scatter_1 = ax.scatter([], [], marker=pacman_marker, c='yellow', s=100)    # diamond
 scatter_3 = ax.scatter([], [], marker='o', c='yellow', s=150)   # star
 
