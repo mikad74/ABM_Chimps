@@ -10,3 +10,9 @@ def main(n=10):
 
 if __name__ == "__main__":
     main()
+
+    n = 10
+    model = Model(5, 20, 20)
+    for  _ in range(n):
+        model.run()
+        print(len(model.data_track[0]), len(model.data_track[1]))

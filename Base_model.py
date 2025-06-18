@@ -15,6 +15,7 @@ class Model:
         self.crews = {id: self.add_chimp_crew(id) for id  in range(n_crews)}
         self.oases = {id: self.add_oasis(id) for id in range(n_oases)}
         self.grid = self.create_grid()
+        self.data_track = [[], []]
         pass
 
     def add_chimp_crew(self, id):
@@ -71,6 +72,9 @@ class Model:
                 crew.consume()
                 if crew.oasis == None:
                     self.grid[crew.X, crew.Y] = 1
+
+        self.data_track[0].append(self.crews.values())
+        self.data_track[1].append(self.oases.values())
         
     def create_grid(self):
         grid = np.zeros((self.grid_size, self.grid_size))
@@ -178,14 +182,14 @@ class Chimp_crew(Agent):
         # if loss, crew keeps searching
 
 
-    def move(self, grid_length, oases, crews, motion_accuracy = 100):
+    def move(self, grid_length, oases, crews, motion_accuracy = 10):
         neighbourhood = [[self.X + di, self.Y + dj] for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, 1), (1, -1)] if 0 <= self.X + di < grid_length and 0 <= self.Y + dj < grid_length]
         # here check for neighboring crews to avoid collision
         available_nbh = [pos for pos in neighbourhood if pos not in[crew.pos for crew in crews]]
 
         
         
-        if available_nbh and oases:
+        if len(available_nbh)>1 and oases:
             # based on global knowledge of all oases, we pick the closest
             closest_oasis = min(oases, key=lambda oasis: euclidean_distance(oasis.pos, self.pos))
 
@@ -193,6 +197,7 @@ class Chimp_crew(Agent):
             
             # the least the distance the higher the chance to be picked as next pos
             weights_ = [(1-(dist / sum(distances2oasis)))**motion_accuracy for dist in distances2oasis]
+            
             weights = [w/sum(weights_) for w in weights_]
 
             # we pick new position randomly from the possible ones, with a probability weight depending on "weights"
