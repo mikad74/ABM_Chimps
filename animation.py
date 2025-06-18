@@ -4,15 +4,12 @@ from matplotlib import animation
 
 n_sim = 100
 model = Model(5, 20, 20)
-model.crews[0].unaccessible_oases.append(model.oases[6])
 fig, ax = plt.subplots()
-img = ax.imshow(model.grid)
+img = ax.imshow(model.grid, vmin=0, vmax=3)
 
 def update_ani(frame):
     model.run()
-    for crew  in model.crews.values():
-        print(vars(crew))
-    img.set_array(model.grid)
+    img.set_data(model.grid)
     ax.set_title(f"Time Step: {frame}")
     return [img]
 

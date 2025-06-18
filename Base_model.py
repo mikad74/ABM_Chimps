@@ -20,7 +20,8 @@ class Model:
             self.add_chimp_crew()
         for _ in range(n_oases):
             self.add_oasis()
-        self.grid = self.create_grid()
+        self.grid = []
+        self.create_grid()
         self.data_track = [[], []]
         pass
 
@@ -48,7 +49,7 @@ class Model:
             pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
             while any(oasis.pos == pos for oasis in self.oases.values()):
                 pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
-        size = 50
+        size = random.randint(2, 15)
         new_oasis = Oasis(id, pos, size)
         self.oases[id] = new_oasis
         return new_oasis
@@ -68,37 +69,50 @@ class Model:
 
             # Only move if not feeding at an oasis
             if not crew.oasis:
-                X_old, Y_old = crew.pos
-                crew.move(self.grid_size, self.oases.values(), self.crews.values())
-                self.grid[X_old, Y_old] = 0
-                if not self.grid[crew.X, crew.Y] == 2:
-                    self.grid[crew.X, crew.Y] = 1       
+                # Check  if next to oasis
+                neighboring_oases = [[],[]]
+                for oasis in self.oases.values():
+                    if abs(crew.X - oasis.X) <=1 and abs(crew.Y - oasis.Y) <= 1 and oasis.id not in crew.unaccessible_oases:
+                        if oasis.occupied:
+                            neighboring_oases[1].append(oasis.id)
+                        else:
+                            neighboring_oases[0].append(oasis.id)
+                        ## Fight or something
+                if neighboring_oases[0]:
+                    oasis = self.oases[neighboring_oases[0][0]]
+                    crew.pos = (oasis.pos)
+                    crew.oasis = oasis
+                    oasis.occupied = True
+                    # self.grid[crew.X, crew.Y] = 3
+                elif neighboring_oases[1]:
+                    crew.unaccessible_oases.add(neighboring_oases[1][0])
+                else:
+                    X_old, Y_old = crew.pos
+                    crew.move(self.grid_size, self.oases.values(), self.crews.values())
+                    # self.grid[X_old, Y_old] = 0
+                    # if not self.grid[crew.X, crew.Y] == 2:
+                    #     self.grid[crew.X, crew.Y] = 1       
                 
 
-                # When arriving at an oasis attach it to the agent
-                else:
-                    for oasis in self.oases.values():
-                        if oasis.pos == (crew.X, crew.Y) and not oasis.occupied:
-                            crew.oasis = oasis
-                            oasis.occupied = True
-                            self.grid[crew.X, crew.Y] = 3
             
             # If at an oasis, consume
             else:
                 crew.consume()
-                if crew.oasis == None:
-                    self.grid[crew.X, crew.Y] = 1
+                # if crew.oasis == None:
+                    # self.grid[crew.X, crew.Y] = 1
 
+        self.create_grid()
         self.data_track[0].append(self.crews.values())
         self.data_track[1].append(self.oases.values())
         
     def create_grid(self):
-        grid = np.zeros((self.grid_size, self.grid_size))
+        grid = np.zeros((self.grid_size, self.grid_size), dtype='f')
         for crew in self.crews.values():
-            grid[crew.X, crew.Y] = 1
+            grid[crew.X, crew.Y] += 1
         for oasis in self.oases.values():
-            grid[oasis.X, oasis.Y] = 2
-        return grid
+            grid[oasis.X, oasis.Y] += 2
+        self.grid = grid
+        
 
 
         # create chimps crews
@@ -136,7 +150,7 @@ class Chimp_crew(Agent):
         self.energy = initial_energy # energy of our crew: goes up when the crew is currently occupying a resource rich oasis, goes down whem the crew moves, fights
         self.nomad = True # whether the crew is currently looking for a new source of food
         self.oasis = None
-        self.unaccessible_oases = [] 
+        self.unaccessible_oases = set() 
 
     def conflict(self, other_crew, oasis, cost_fight = 20, cost_loss = 10):
         '''
@@ -197,8 +211,6 @@ class Chimp_crew(Agent):
         # other crew becomes nomad again and takes an available neighbouring position
         # if loss, crew keeps searching
 
-    def accesbile_oases(self, oases):
-        return [oasis for oasis in oases if oasis not in self.unaccessible_oases]
 
     def move(self, grid_length, oases, crews, motion_accuracy = 100):
         neighbourhood = [[self.X + di, self.Y + dj] for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, 1), (1, -1)] if 0 <= self.X + di < grid_length and 0 <= self.Y + dj < grid_length]
@@ -209,17 +221,22 @@ class Chimp_crew(Agent):
         
         if len(available_nbh)>1 and oases:
             # based on global knowledge of all oases, we pick the closest
-            closest_oasis = min(self.accesbile_oases(oases), key=lambda oasis: euclidean_distance(oasis.pos, self.pos))
+            accessible_oases = [oasis for oasis in oases if oasis.id not in self.unaccessible_oases]
+            if accessible_oases:
+                closest_oasis = min(accessible_oases, key=lambda oasis: euclidean_distance(oasis.pos, self.pos))
 
-            distances2oasis = [euclidean_distance(closest_oasis.pos, pos) for pos in available_nbh]
-            
-            # the least the distance the higher the chance to be picked as next pos
-            weights_ = [(1-(dist / sum(distances2oasis)))**motion_accuracy for dist in distances2oasis]
-            
-            weights = [w/sum(weights_) for w in weights_]
+                distances2oasis = [euclidean_distance(closest_oasis.pos, pos) for pos in available_nbh]
+                
+                # the least the distance the higher the chance to be picked as next pos
+                weights_ = [(1-(dist / sum(distances2oasis)))**motion_accuracy for dist in distances2oasis]
+                
+                weights = [w/sum(weights_) for w in weights_]
 
-            # we pick new position randomly from the possible ones, with a probability weight depending on "weights"
-            self.pos = random.choices(available_nbh, weights=weights)[0]
+                # we pick new position randomly from the possible ones, with a probability weight depending on "weights"
+                self.pos = random.choices(available_nbh, weights=weights)[0]
+            else:
+                self.pos = random.choices(available_nbh)[0]
+
 
         else:
             self.pos = random.choice(available_nbh)
