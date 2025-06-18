@@ -1,7 +1,7 @@
 from Base_model import *
 
 def main(n=10):
-    model = Model(5, 10, 10)
+    model = Model(0, 0, 3)
     for _ in range(n):
         model.run()
         print(model.grid)

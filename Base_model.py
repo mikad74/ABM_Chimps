@@ -1,5 +1,6 @@
 import numpy as np
 import random
+from itertools import count
 
 def euclidean_distance(pos1, pos2):
     return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
@@ -11,29 +12,44 @@ class Model:
         n_oases (int): number of initial oases
         grid_size(int): length of the edge of the square grid
         '''
+        self.id_gen = count()
         self.grid_size = grid_size
-        self.crews = {id: self.add_chimp_crew(id) for id  in range(n_crews)}
-        self.oases = {id: self.add_oasis(id) for id in range(n_oases)}
+        self.crews = {}
+        self.oases = {}
+        for _ in range(n_crews):
+            self.add_chimp_crew()
+        for _ in range(n_oases):
+            self.add_oasis()
         self.grid = self.create_grid()
         pass
 
-    def add_chimp_crew(self, id):
+    def add_chimp_crew(self, pos=None):
         """
         Generate a crew of chimps as an agent
         """
-        pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
+        if not pos or any(crew.pos == pos for crew in self.crews.values()):
+            pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
+            while any(crew.pos == pos for crew in self.crews.values()):
+                pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
+        id = next(self.id_gen)
         size = 1
         energy = 0
         new_crew = Chimp_crew(id, pos, size, energy)
+        self.crews[id] = new_crew
         return new_crew
 
-    def add_oasis(self, id):
+    def add_oasis(self, pos=None):
         """
         Generate a new oasis
         """
-        pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
+        id = next(self.id_gen)
+        if not pos or any(oasis.pos == pos for oasis in self.oases.values()):
+            pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
+            while any(oasis.pos == pos for oasis in self.oases.values()):
+                pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
         size = 1
         new_oasis = Oasis(id, pos, size)
+        self.oases[id] = new_oasis
         return new_oasis
     
     def run(self):
