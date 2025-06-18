@@ -6,7 +6,7 @@ def euclidean_distance(pos1, pos2):
     return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
 
 class Model:
-    def __init__(self, n_crews, n_oases, grid_size):
+    def __init__(self, n_crews, n_oases, grid_size, oasis_spawn_chance=.05):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
@@ -14,6 +14,7 @@ class Model:
         '''
         self.id_gen = count()
         self.grid_size = grid_size
+        self.oasis_spawn_chance = oasis_spawn_chance
         self.crews = {}
         self.oases = {}
         for _ in range(n_crews):
@@ -59,17 +60,27 @@ class Model:
         Run the model for one time-step
 
         """
+
+
+        # Remove oasis if empty TODO: Spawn new oases
         ids = []
         for oasis in self.oases.values():
             if oasis.resource <= 0:
                 ids.append(oasis.id)
         for id in ids:
             del self.oases[id]
-        for crew in self.crews.values():
+        p = random.random()
+        if len(self.oases.values()) <= 3 or p <= self.oasis_spawn_chance:
+            n = random.randint(0, 3)
+            for _ in range(n):  self.add_oasis()
 
-            # Only move if not feeding at an oasis
+
+
+        for crew in self.crews.values(): # TODO: Randomize order??
+            # Check if at oasis, if so eat, else move
             if not crew.oasis:
-                # Check  if next to oasis
+                
+
                 neighboring_oases = [[],[]]
                 for oasis in self.oases.values():
                     if abs(crew.X - oasis.X) <=1 and abs(crew.Y - oasis.Y) <= 1 and oasis.id not in crew.unaccessible_oases:
@@ -77,29 +88,24 @@ class Model:
                             neighboring_oases[1].append(oasis.id)
                         else:
                             neighboring_oases[0].append(oasis.id)
-                        ## Fight or something
+
+
+                # Free oasis => move there
                 if neighboring_oases[0]:
                     oasis = self.oases[neighboring_oases[0][0]]
                     crew.pos = (oasis.pos)
                     crew.oasis = oasis
                     oasis.occupied = True
-                    # self.grid[crew.X, crew.Y] = 3
-                elif neighboring_oases[1]:
-                    crew.unaccessible_oases.add(neighboring_oases[1][0])
-                else:
-                    X_old, Y_old = crew.pos
-                    crew.move(self.grid_size, self.oases.values(), self.crews.values())
-                    # self.grid[X_old, Y_old] = 0
-                    # if not self.grid[crew.X, crew.Y] == 2:
-                    #     self.grid[crew.X, crew.Y] = 1       
-                
 
-            
-            # If at an oasis, consume
+                # Occupied oasis => Play game
+                elif neighboring_oases[1]:
+                    crew.unaccessible_oases.add(neighboring_oases[1][0]) # TODO: Play game
+                
+                # No oasis near, move closer to oasis
+                else:
+                    crew.move(self.grid_size, self.oases.values(), self.crews.values())
             else:
                 crew.consume()
-                # if crew.oasis == None:
-                    # self.grid[crew.X, crew.Y] = 1
 
         self.create_grid()
         self.data_track[0].append(self.crews.values())
@@ -241,7 +247,7 @@ class Chimp_crew(Agent):
         else:
             self.pos = random.choice(available_nbh)
     
-    def consume(self):
+    def consume(self): # TODO: expand consume
         food, remaining = self.oasis.get_consumed(self.crew_size * 3)
         self.energy += food
         if remaining <= 0 :

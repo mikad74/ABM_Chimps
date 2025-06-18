@@ -2,7 +2,7 @@ from Base_model import *
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
-n_sim = 100
+n_sim = 300
 model = Model(5, 20, 20)
 fig, ax = plt.subplots()
 img = ax.imshow(model.grid, vmin=0, vmax=3)
