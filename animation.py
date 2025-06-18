@@ -2,8 +2,8 @@ from Base_model import *
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
-n_sim = 80
-model = Model(5, 20, 20)
+n_sim = 500
+model = Model(5, 30, 30)
 fig, ax = plt.subplots()
 img = ax.imshow(model.grid)
 

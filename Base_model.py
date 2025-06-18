@@ -47,7 +47,7 @@ class Model:
             pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
             while any(oasis.pos == pos for oasis in self.oases.values()):
                 pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
-        size = 1
+        size = 50
         new_oasis = Oasis(id, pos, size)
         self.oases[id] = new_oasis
         return new_oasis
@@ -71,7 +71,7 @@ class Model:
                 crew.move(self.grid_size, self.oases.values(), self.crews.values())
                 self.grid[X_old, Y_old] = 0
                 if not self.grid[crew.X, crew.Y] == 2:
-                    self.grid[crew.X, crew.Y] = 1       #TODO: chimp + oasis
+                    self.grid[crew.X, crew.Y] = 1       
                 
 
                 # When arriving at an oasis attach it to the agent
