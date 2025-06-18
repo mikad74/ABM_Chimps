@@ -5,7 +5,7 @@ from matplotlib import animation
 n_sim = 100
 model = Model(5, 20, 20)
 fig, ax = plt.subplots()
-img = ax.imshow(model.grid)
+img = ax.imshow(model.grid, )
 
 def update_ani(frame):
     model.run()
