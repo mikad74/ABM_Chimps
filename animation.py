@@ -1,4 +1,4 @@
-from Base_model import *
+from Base_model import TestingModel as Model
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
