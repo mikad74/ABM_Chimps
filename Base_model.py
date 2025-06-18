@@ -182,7 +182,7 @@ class Chimp_crew(Agent):
         # if loss, crew keeps searching
 
 
-    def move(self, grid_length, oases, crews, motion_accuracy = 10):
+    def move(self, grid_length, oases, crews, motion_accuracy = 100):
         neighbourhood = [[self.X + di, self.Y + dj] for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, 1), (1, -1)] if 0 <= self.X + di < grid_length and 0 <= self.Y + dj < grid_length]
         # here check for neighboring crews to avoid collision
         available_nbh = [pos for pos in neighbourhood if pos not in[crew.pos for crew in crews]]
