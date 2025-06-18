@@ -15,7 +15,7 @@ pacman_marker = MarkerStyle(pacman_path)
 
 # Define a dark purple gradient colormap (from black to dark purple to lighter purple)
 dark_purple_cmap = LinearSegmentedColormap.from_list(
-    'dark_purple', ["#29044e", "#29044e","#29044e","#29044e"], N=256
+    'dark_purple', ["#18044e","#18044e","#18044e","#18044e"], N=256
 )
 
 n_sim = 200
