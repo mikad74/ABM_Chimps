@@ -136,7 +136,7 @@ class Chimp_crew(Agent):
         self.energy = initial_energy # energy of our crew: goes up when the crew is currently occupying a resource rich oasis, goes down whem the crew moves, fights
         self.nomad = True # whether the crew is currently looking for a new source of food
         self.oasis = None
-        self.unaccessible_oasis = [] 
+        self.unaccessible_oases = [] 
 
     def conflict(self, other_crew, oasis, cost_fight = 20, cost_loss = 10):
         '''
@@ -197,6 +197,8 @@ class Chimp_crew(Agent):
         # other crew becomes nomad again and takes an available neighbouring position
         # if loss, crew keeps searching
 
+    def accesbile_oases(self, oases):
+        return [oasis for oasis in oases if oasis not in self.unaccessible_oases]
 
     def move(self, grid_length, oases, crews, motion_accuracy = 100):
         neighbourhood = [[self.X + di, self.Y + dj] for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, 1), (1, -1)] if 0 <= self.X + di < grid_length and 0 <= self.Y + dj < grid_length]
@@ -207,7 +209,7 @@ class Chimp_crew(Agent):
         
         if len(available_nbh)>1 and oases:
             # based on global knowledge of all oases, we pick the closest
-            closest_oasis = min(oases, key=lambda oasis: euclidean_distance(oasis.pos, self.pos))
+            closest_oasis = min(self.accesbile_oases(oases), key=lambda oasis: euclidean_distance(oasis.pos, self.pos))
 
             distances2oasis = [euclidean_distance(closest_oasis.pos, pos) for pos in available_nbh]
             
