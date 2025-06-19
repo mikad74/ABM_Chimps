@@ -1,4 +1,3 @@
-
 import numpy as np
 import random
 from itertools import count
@@ -27,7 +26,7 @@ class Model:
         self.data_track = [[], []]
         pass
 
-    def add_chimp_crew(self, pos=None):
+    def add_chimp_crew(self, pos=None, type=None):
         """
         Generate a crew of chimps as an agent
         """
@@ -38,7 +37,7 @@ class Model:
         id = next(self.id_gen)
         size = 1
         energy = 0
-        new_crew = Chimp_crew(id, pos, size, energy)
+        new_crew = Chimp_crew(id, pos, size, energy, type)
         self.crews[id] = new_crew
         return new_crew
 
@@ -64,5 +63,3 @@ class Model:
         for oasis in self.oases.values():
             grid[oasis.X, oasis.Y] += 2
         self.grid = grid
-        
-
