@@ -4,6 +4,7 @@ from matplotlib.path import Path
 from matplotlib.markers import MarkerStyle
 from matplotlib import animation
 from matplotlib.colors import LinearSegmentedColormap
+import numpy as np
 
 # Define a Pac-Man shape (wedge from a circle)
 theta = np.linspace(0.25 * np.pi, 1.75 * np.pi, 30)  # open mouth
