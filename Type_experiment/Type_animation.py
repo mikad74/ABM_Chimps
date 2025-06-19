@@ -2,10 +2,11 @@ from Type_model import Type_Model as Model
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
-n_sim = 300
-model = Model(5, 20, 20)
+sim_length = 100
+n_types = 9
+model = Model(n_types, 20, n_types, 20)
 fig, ax = plt.subplots()
-img = ax.imshow(model.grid, vmin=0, vmax=3)
+img = ax.imshow(model.grid, vmin=-1, vmax=n_types)
 
 def update_ani(frame):
     model.run()
@@ -13,5 +14,5 @@ def update_ani(frame):
     ax.set_title(f"Time Step: {frame}")
     return [img]
 
-ani = animation.FuncAnimation(fig, update_ani, frames=n_sim, interval=1, blit=False)
+ani = animation.FuncAnimation(fig, update_ani, frames=sim_length, interval=1, blit=False)
 ani.save("chimp_simulation.mp4", fps=10)

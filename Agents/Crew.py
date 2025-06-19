@@ -96,12 +96,13 @@ class Chimp_crew(Agent):
 
                 # we pick new position randomly from the possible ones, with a probability weight depending on "weights"
                 self.pos = random.choices(available_nbh, weights=weights)[0]
+
             else:
                 self.pos = random.choices(available_nbh)[0]
 
 
-        else:
-            self.pos = random.choice(available_nbh)
+        elif len(available_nbh) == 1:
+            self.pos = available_nbh[0]
     
     def consume(self): # TODO: expand consume
         food, remaining = self.oasis.get_consumed(self.crew_size * 3)

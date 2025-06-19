@@ -1,6 +1,14 @@
 import numpy as np
 import random
 from itertools import count
+import sys
+import os
+
+# Add ABM_Chimps to the path manually
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 from Agents.Oasis import Oasis
 from Agents.Crew import Chimp_crew
 
@@ -35,11 +43,18 @@ class Type_Model:
             while any(crew.pos == pos for crew in self.crews.values()):
                 pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
         id = next(self.id_gen)
-        size = 1
-        energy = 0
-        new_crew = Chimp_crew(id, pos, size, energy, type)
+        new_crew = Chimp_crew(id, pos, type=type)
         self.crews[id] = new_crew
         return new_crew
+    
+    def remove_chimp_crews(self):
+        to_remove = [key for key, crew in self.crews.items() if crew.energy <= 0]
+        for key in to_remove:
+            crew = self.crews[key]
+            if crew.oasis:
+                crew.oasis.occupied = False  # Free the oasis
+            del self.crews[key]
+
 
     def add_oasis(self, pos=None):
         """
@@ -50,7 +65,7 @@ class Type_Model:
             pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
             while any(oasis.pos == pos for oasis in self.oases.values()):
                 pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
-        resource = random.randint(20, 50)
+        resource = random.randint(250, 280)
         new_oasis = Oasis(id, pos, resource)
         self.oases[id] = new_oasis
         return new_oasis
@@ -58,33 +73,32 @@ class Type_Model:
         
     def create_grid(self):
         grid = np.zeros((self.grid_size, self.grid_size), dtype='f')
-        for crew in self.crews.values():
-            grid[crew.X, crew.Y] += 1
+        
         for oasis in self.oases.values():
-            grid[oasis.X, oasis.Y] += 2
+            grid[oasis.X, oasis.Y] = -1
+        for crew in self.crews.values():
+            grid[crew.X, crew.Y] =+ crew.type
         self.grid = grid
 
 
-    def run(self, cost_defeat=10, cost_fight=20, prob_win = 1/2):
+    def run(self, cost_defeat=10, cost_fight=100, prob_win = 1/2):
         """
         Run the model for one time-step
 
         """
 
-
-        # Remove oasis if empty TODO: Spawn new oases
         ids = []
         for oasis in self.oases.values():
             if oasis.resource <= 0:
                 ids.append(oasis.id)
         for id in ids:
             del self.oases[id]
-        p = random.random()
-        if len(self.oases.values()) <= 3 or p <= self.oasis_spawn_chance:
-            n = random.randint(0, 3)
-            for _ in range(n):  self.add_oasis()
 
+        n_chimps = sum([crew.crew_size for crew in self.crews.values()])
+        tot_res = sum([oasis.resource for oasis in self.oases.values()])
 
+        if tot_res < 80 * n_chimps :
+            self.add_oasis()
 
         for crew in self.crews.values(): # TODO: Randomize order??
             # Check if at oasis, if so eat, else move
@@ -110,13 +124,12 @@ class Type_Model:
                 # Occupied oasis => Play game
                 elif neighboring_oases[1]:
                     oasis = self.oases[neighboring_oases[1][0]]
-                    other_crew = [crew for crew in self.crews if crew.pos == oasis.pos][0]
+                    other_crew = [crew for crew in self.crews.values() if crew.pos == oasis.pos][0]
                     
-                    if self.type == 0 or self.type < other_crew.type: # crew gets intimidated out by the defending crew
+                    if crew.type == 0 or crew.type < other_crew.type: # crew gets intimidated out by the defending crew
                         crew.unaccessible_oases.add(oasis)
                     
-                    elif self.type == other_crew.type: # display are equal => fight
-                        print("fight!")
+                    elif crew.type == other_crew.type: # display are equal => fight
                         if random.random() > prob_win: # crew losess
                             crew.unaccessible_oases.add(oasis) 
 
@@ -143,6 +156,11 @@ class Type_Model:
             else:
                 crew.consume()
 
+        for crew in self.crews.values():
+            crew.energy -= crew.crew_size
+            
+        self.remove_chimp_crews()
+
         self.create_grid()
-        self.data_track[0].append(self.crews.values())
-        self.data_track[1].append(self.oases.values())
+        self.data_track[0].append(list(self.crews.values()))
+        self.data_track[1].append(list(self.oases.values()))
