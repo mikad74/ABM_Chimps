@@ -13,64 +13,85 @@ class Chimp_crew(Agent):
         self.oasis = None
         self.unaccessible_oases = set()
 
-    def conflict(self, other_crew, oasis, cost_fight = 20, cost_loss = 10):
+    #************THE CONFLICT METHOD IS NOT BEING USED IN THE TYPE-INTERPRETATION*************
+    #there, the conflict is implemented within the model
+    
+    
+    
+    def conflict(self, other_crew, oasis, 
+                 cF=20, #should be based on their size
+                 cL=10, #should be  based on the size of the oasis
+                 cI=5, 
+                 cR=0):
         '''
-        this function returns the valuation that a crew assigns to a ressource (benefit) depending on how
+        this function implements the valuation that a crew assigns to a ressource (benefit) depending on how
         hard it might be to take it over (cost)
         '''
-        # intimidation round
-        
-        '''
-        V = oasis.resource
-        s = crew_size * energy
-        cF = cost of fight
-        cL = cost of losing the fight
-        cI = cost of intimidate
-        
-        q = prob opponent backs down after the agent intimidates
-        q = clip(0.2 + 0.6 * (p - 0.5), 0, 0.9)             0.2 is the threshold
-        
-        p = prob agent wins the fight
-        p = s_self / (s_self + s_other)
-        
-        U_fight      = p·(V - cF)      + (1 - p)·(-cF - cL)
-        U_intimidate = -cI + q·V        + (1 - q)·U_fight
-        U_retreat    = 0                                            ?? or -cR?
-        
-        if U_intimidate ≥ max(U_fight, U_retreat):   INTIMIDATE
-        elif U_fight      ≥ U_retreat:               FIGHT
-        else:                                        RETREAT
+        # ---------- shorthand variables ----------
+        V = oasis.resource                       # reward if you end up owning the oasis
+        s_self   = self.crew_size
+        s_other  = other_crew.crew_size
+        if s_self + s_other == 0:                # avoid 0-division
+            p = 0.5
+        else:
+            p = s_self / (s_self + s_other)      # win prob if a fight happens
 
-        ______________________________
+        q = max(0.0, min(0.9, 0.2 + 0.6 * (p - 0.5)))   # back-down chance after display
 
-        I thought we said we only decide intimidate/retreat and a fight happens when both decide to intimidate?
+        # ---------- expected utilities ----------
+        U_fight      = p * (V - cF) + (1 - p) * (-cF - cL)
+        U_intimidate = -cI + q * V + (1 - q) * U_fight
+        U_retreat    = -cR
 
-        I think we can model this with what we learned in the lecture about prospect theory since we have the
-        case where we need to make a decision that could lead to either a gain or loss from our current energy level.
-        We calculate the utility of fighting with the formula  U(x) = π(pi)v(xi) + π(pj)v(xj) from the lecture.
-        xi being energy gain from the ressource and xj the loss in energy from fighting and losing.
-        I don't know if we really need the parameter cost_loss? I think it's implicit in fighting but not getting the ressource.
+        # ---------- choose action ----------
+        if U_intimidate >= max(U_fight, U_retreat):
+            action = "intimidate"
+        elif U_fight >= U_retreat:
+            action = "fight"
+        else:
+            action = "retreat"
 
-        v(xj) includes a positive gain sensitivity parameter and loss aversion parameters. Here we could apply
-        the strategy of the chimps -> risk-seeking agents will have a higher valuation for winning and are more likely to bluff.
-        The weighting function includes the probility of the outcome i.e. the percieved likelihood of winning the fight.
-        We can iteratively modify how p is calculated but I think it needs to include the size of this crew, size of other
-        crew and own energy level. Later we could add fight history for smarter chimps.
+        # ---------- enact consequences ----------
+        if action == "retreat":
+            self.energy += U_retreat             # just subtracts cR (0 by default)
+            self.unaccessible_oases.add(oasis.id)
+            #return action #do we need to return it?
 
-        The utility for retreating is just 0 and we decide: 
-        if U_fight ≥ U_retreat = 0:   INTIMIDATE
-        else  RETREAT
-        Let me know that you think!
+        # pay display cost first
+        self.energy -= cI
 
-        '''
-        pre_utility = [[oasis.ressource - cost_fight, oasis.ressource], [- cost_fight - cost_loss, - cost_loss]] # potential outcomes from a conflict
-        # look for equilibrium here
+        # Does opponent yield to the display?
+        if action == "intimidate" and random.random() < q:
+            self._claim_oasis(oasis, other_crew)
+            #return action # maybe we need this at some point
+            
+        else: 
+            action = "fight" #right? 
+            
+        # ************"fight" NOT USED, USE IT************
+            
 
-        # fight 
-        # loss of energy eitherway
-        # if win then crew stops being nomad and takes same position as oasis 
-        # other crew becomes nomad again and takes an available neighbouring position
-        # if loss, crew keeps searching
+        # ---------- fight (either chosen directly or after failed display) ----------
+        self.energy        -= cF
+        other_crew.energy  -= cF
+        self_wins = random.random() < p
+        if self_wins:
+            other_crew.energy -= cL
+            self._claim_oasis(oasis, other_crew)
+        else:
+            self.energy -= cL
+            other_crew._claim_oasis(oasis, self)
+        #return "fight" # maybe we need this at some point
+
+    def _claim_oasis(self, oasis, loser):
+        """Helper: self takes oasis; loser becomes nomad and marks it inaccessible."""
+        self.pos     = oasis.pos
+        self.oasis   = oasis
+        oasis.occupied = True
+
+        loser.oasis  = None
+        loser.unaccessible_oases.add(oasis.id)
+
 
 
     def move(self, grid_length, oases, crews, motion_accuracy = 100):
@@ -108,7 +129,7 @@ class Chimp_crew(Agent):
         self.energy += food
         if remaining <= 0 :
             self.oasis = None
-        # depending on size, the crew gains energy while oasis loses ressource
+        # depending on size, the crew gains energy while oasis loses resource
 
 if __name__ == "__main__":
     pass
