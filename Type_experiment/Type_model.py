@@ -76,7 +76,7 @@ class Type_Model:
             pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
             while any(oasis.pos == pos for oasis in self.oases.values()):
                 pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
-        resource = random.randint(250, 280)
+        resource = random.randint(50, 80)
         new_oasis = Oasis(id, pos, resource)
         self.oases[id] = new_oasis
         return new_oasis
@@ -108,7 +108,7 @@ class Type_Model:
         n_chimps = sum([crew.crew_size for crew in self.crews.values()])
         tot_res = sum([oasis.resource for oasis in self.oases.values()])
 
-        if tot_res < 80 * n_chimps :
+        if tot_res < 100 * n_chimps :
             self.add_oasis()
 
         for crew in self.crews.values(): # TODO: Randomize order??
