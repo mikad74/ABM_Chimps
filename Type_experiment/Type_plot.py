@@ -2,6 +2,8 @@ from Type_model import Type_Model as Model
 import matplotlib.pyplot as plt
 import numpy as np
 
+print("hahaha")
+
 n_sim = 500
 sim_length = 1000
 t = np.linspace(1, sim_length, sim_length)
