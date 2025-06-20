@@ -2,10 +2,8 @@ from Type_model import Type_Model as Model
 import matplotlib.pyplot as plt
 import numpy as np
 
-print("hahaha")
-
-n_sim = 500
-sim_length = 1000
+n_sim = 500 # default 500
+sim_length = 1000 # default 1000
 t = np.linspace(1, sim_length, sim_length)
 cost_fight_values = [10, 20, 50, 100]
 n_types = 4
@@ -36,5 +34,5 @@ for idx, cost_fight in enumerate(cost_fight_values):
     axs[idx].legend()
 
 plt.tight_layout()
-plt.savefig("Type_experiment/type_crews_over_time_cost_fight_variants.png", dpi=300)
+plt.savefig("without_agressive.png", dpi=300)
 plt.show()

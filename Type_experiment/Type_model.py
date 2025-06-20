@@ -20,6 +20,37 @@ class Type_Chimp_crew(Chimp_crew):
         self.type = None
         self.last_opp_type = -1
 
+    def intimidate(self, other_crew, prob_win, oasis):
+        if random.random() > prob_win: # crew loses
+            self.unaccessible_oases.add(oasis) 
+
+        else: # crew wins
+            other_crew.oasis = None
+            other_crew.pos = self.pos[:]
+            other_crew.unaccessible_oases.add(oasis) 
+            self.pos = oasis.pos
+            self.oasis = oasis
+            
+    def fight(self, other_crew, prob_win, oasis, cost_fight):
+        if random.random() > prob_win: # crew loses
+            self.unaccessible_oases.add(oasis) 
+
+        else: # crew wins
+            other_crew.oasis = None
+            other_crew.pos = self.pos[:]
+            other_crew.unaccessible_oases.add(oasis) 
+            self.pos = oasis.pos
+            self.oasis = oasis
+
+        self.energy -= cost_fight
+        other_crew.energy -= cost_fight
+
+    def reclaim(self, other_crew, oasis):
+        other_crew.oasis = None
+        other_crew.pos = self.pos[:]
+        other_crew.unaccessible_oases.add(oasis) 
+        self.pos = oasis.pos
+        self.oasis = oasis
 
 class Type_Model:
     def __init__(self, n_crews, n_oases, n_types, grid_size, cost_fight = 10, oasis_spawn_chance=.05):
@@ -149,34 +180,48 @@ class Type_Model:
                                 c.type = random.choice([0,1])
                             else:
                                 c.type = c.last_opp_type
+                        elif c.strat == 4: # agressive type
+                            c.type = 2
                     
                     # record the last opponents type
                     crew.last_opp_type = other_crew.type
                     other_crew.last_opp_type = crew.type
-
-                    if crew.type == 0 or crew.type < other_crew.type: # crew gets intimidated out by the defending crew
-                        crew.unaccessible_oases.add(oasis)
                     
-                    elif crew.type == other_crew.type: # display are equal => fight
-                        if random.random() > prob_win: # crew losess
-                            crew.unaccessible_oases.add(oasis) 
-
-                        else: # crew wins
-                            other_crew.oasis = None
-                            other_crew.pos = crew.pos[:]
-                            other_crew.unaccessible_oases.add(oasis) 
-                            crew.pos = oasis.pos
-                            crew.oasis = oasis
-
-                        crew.energy -= self.cost_fight
-                        other_crew.energy -= self.cost_fight
+                    if crew.type == 0: #if anxious
+                        crew.unaccessible_oases.add(oasis) #retreat
+                    
+                    elif other_crew.type == 0: #if the other one is anxious
+                        crew.reclaim(other_crew, oasis) #always get their oasis
                         
-                    else:
-                        other_crew.oasis = None
-                        other_crew.pos = crew.pos[:]
-                        other_crew.unaccessible_oases.add(oasis) 
-                        crew.pos = oasis.pos
-                        crew.oasis = oasis
+                    elif crew.type == 1: #if show-off
+                        #if the other one is no fighter - win with prob 1/2?
+                        if crew.type == other_crew.type: #because this is the only case when they are no fighters and not 0??
+                            crew.intimidate(other_crew, prob_win, oasis) # prob 1/2 to win, but no cost of fight
+                        if crew.type < other_crew.type: #the other one wants to fight anyways
+                            if random.random() < 0.5: #sometimes intimidation is enough
+                                crew.reclaim(other_crew, oasis)
+                            else: #intimidation was not enough, have to fight
+                                crew.fight(other_crew, prob_win, oasis, self.cost_fight)
+                    
+                    elif crew.type == 2:
+                        if other_crew.type == 1: #the other one wants to show off
+                            
+
+                    '''
+                    if crew.type == 0 or crew.type < other_crew.type: # crew gets intimidated out by the defending crew
+                        crew.unaccessible_oases.add(oasis)                 
+          
+                    elif crew.type == other_crew.type: # fight when same type
+                        crew.fight(other_crew, prob_win, oasis, self.cost_fight)
+                    
+                    elif crew.type == 4 or other_crew.type == 4: 
+                        # one of them is agressive and none is anxious
+                        
+                        crew.fight(other_crew, prob_win, oasis, self.cost_fight)
+                        
+                    else: # crew.type > other_crew.type
+                        crew.reclaim(other_crew, oasis)
+                    ''' 
 
                 # No oasis near, move closer to oasis
                 else:
