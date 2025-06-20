@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-n_sim = 500
+n_sim = 10
 sim_length = 1000
 t = np.linspace(1, sim_length, sim_length)
 cost_fight_values = [10, 20, 50, 100]
@@ -13,14 +13,14 @@ n_types = len(n_types_names)
 fig, axs = plt.subplots(2, 2, figsize=(16, 12))
 axs = axs.flatten()
 
-for idx, cost_fight in enumerate(cost_fight_values):
+for idx, cost_fight in enumerate(tqdm(cost_fight_values)):
     data_track = []
     data_track_oases = []
     food_per_chimp_ = []
 
-    for i in tqdm(range(n_sim)):
+    for i in range(n_sim):
         food_per_chimp = []
-        model = Model(10* n_types, 20, n_types, cost_fight=cost_fight, oasis_spawn_proportional=True, abundance_factor=6)
+        model = Model(10* n_types, 20, n_types, cost_fight=cost_fight, oasis_spawn_proportional=True, abundance_factor=6, oasis_density=.24, food_consumption_speed=.33)
         for j in range(sim_length):
             model.run()
             if [crew for crew in model.crews.values()]:

@@ -15,23 +15,24 @@ from Agents.Crew import Chimp_crew
 from Model.Model import Model
 
 class Type_Chimp_crew(Chimp_crew):
-    def __init__(self, id, pos, crew_size=10, initial_energy=100, strat=None, consumption_rate=1):
-        super().__init__(id, pos, crew_size, initial_energy, consumption_rate=consumption_rate)
+    def __init__(self, id, pos, crew_size=10, initial_energy=100, strat=None, consumption_rate=1, expenditure=1):
+        super().__init__(id, pos, crew_size, initial_energy)
         self.strat = strat
         self.type = None
         self.last_opp_type = -1
 
 
 class Type_Model(Model):
-    def __init__(self, n_crews, grid_size, n_types,  cost_fight = 10, oasis_spawn_proportional=True, abundance_factor=10):
+    def __init__(self, n_crews, grid_size, n_types,  cost_fight = 10, oasis_spawn_proportional=True, abundance_factor=10, oasis_density=0.3, food_consumption_speed=nk1.5):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
         grid_size(int): length of the edge of the square grid
         '''
-        super().__init__(n_crews, grid_size, initialise_crews=False, oasis_spawn_proportional=oasis_spawn_proportional, abundance_factor=abundance_factor)
+        super().__init__(n_crews, grid_size, initialise_crews=False, oasis_spawn_proportional=oasis_spawn_proportional, abundance_factor=abundance_factor, oasis_density=oasis_density, food_consumption_speed=food_consumption_speed)
         self.crews = {}
         self.initial_n_chimps = self.initialize_typed_crews(n_crews, n_types)
+        self.avg_oasis_size = self.food_required / (oasis_density * grid_size * grid_size )
         self.update_oases()
         self.cost_fight = cost_fight
         self.create_typed_grid()
