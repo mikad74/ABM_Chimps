@@ -1,8 +1,9 @@
 from Type_model import Type_Model as Model
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
-n_sim = 500
+n_sim = 1
 sim_length = 1000
 t = np.linspace(1, sim_length, sim_length)
 cost_fight_values = [10, 20, 50, 100]
@@ -17,8 +18,8 @@ for idx, cost_fight in enumerate(cost_fight_values):
     data_track = []
 
     for i in range(n_sim):
-        model = Model(10* n_types, 20, n_types, 20, cost_fight=cost_fight)
-        for j in range(sim_length):
+        model = Model(10* n_types, 20, n_types, cost_fight=cost_fight)
+        for j in tqdm(range(sim_length)):
             model.run()
         data_track.append(model.data_track[0])
 

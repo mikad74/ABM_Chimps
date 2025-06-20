@@ -6,13 +6,14 @@ from Agents.Crew import Chimp_crew
 
 
 class Model:
-    def __init__(self, n_crews, n_oases, grid_size, oasis_spawn_proportional=False, avg_oasis_size=100, abundance_factor=20, crew_consumption_rate=1,):
+    def __init__(self, n_crews,  grid_size, oasis_spawn_proportional=False, avg_oasis_size=25, abundance_factor=20, crew_consumption_rate=1, initialise_crews=True):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
         grid_size(int): length of the edge of the square grid
         '''
         self.id_gen = count()
+        self.n_crews = n_crews
         self.grid_size = grid_size
         self.oasis_spawn_proportional = oasis_spawn_proportional
         self.avg_oasis_size = avg_oasis_size
@@ -20,15 +21,19 @@ class Model:
         self.crew_consumption_rate = crew_consumption_rate
         self.crews = {}
         self.oases = {}
-        for _ in range(n_crews):
-            self.add_chimp_crew()
-        self.update_oases
+        if initialise_crews: self.initialize_crews()
+        self.update_oases()
         # for _ in range(n_oases):
         #     self.add_oasis(random.gauss(avg_oasis_size, avg_oasis_size*0.1))
         self.grid = []
         self.create_grid()
         self.data_track = [[], []]
-        pass
+
+
+    def initialize_crews(self):
+        for _ in range(self.n_crews):
+            self.add_chimp_crew()
+            print(_)
 
     def add_chimp_crew(self, pos=None, type=None):
         """
@@ -41,7 +46,7 @@ class Model:
         id = next(self.id_gen)
         size = 1
         energy = 0
-        new_crew = Chimp_crew(id, pos, size, energy, type)
+        new_crew = Chimp_crew(id, pos, size, energy, type, consumption_rate=self.crew_consumption_rate)
         self.crews[id] = new_crew
         return new_crew
 
