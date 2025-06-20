@@ -5,14 +5,13 @@ def euclidean_distance(pos1, pos2):
     return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
 
 class Chimp_crew(Agent):
-    def __init__(self, id, pos, crew_size=10, initial_energy=100, type=None):
+    def __init__(self, id, pos, crew_size=10, initial_energy=100):
         self.crew_size = crew_size # size of crew
         self.id = id
         self.pos = pos # position of the crew on the spatial domain
         self.energy = initial_energy # energy of our crew: goes up when the crew is currently occupying a resource rich oasis, goes down whem the crew moves, fights
         self.oasis = None
         self.unaccessible_oases = set()
-        self.type = type 
 
     def conflict(self, other_crew, oasis, cost_fight = 20, cost_loss = 10):
         '''

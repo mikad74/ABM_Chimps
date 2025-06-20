@@ -4,12 +4,12 @@ import numpy as np
 
 n_sim = 500
 sim_length = 1000
-n_types = 3
+n_types = 2
 t = np.linspace(1, sim_length, sim_length)
 data_track = []
 
 for i in range(n_sim):
-    model = Model(10*n_types, 20, n_types, 20)
+    model = Model(20*n_types, 20, n_types, 20)
     for j in range(sim_length):
         model.run()
     data_track.append(model.data_track[0])
@@ -24,4 +24,5 @@ plt.xlabel('Time')
 plt.ylabel('Number of Agents')
 plt.title('Number of Agents Over Time by Type')
 plt.legend()
+plt.savefig("type_crews_over_time_cf_10.png", dpi = 300)
 plt.show()

@@ -4,6 +4,7 @@ from itertools import count
 import sys
 import os
 
+
 # Add ABM_Chimps to the path manually
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
@@ -12,9 +13,16 @@ if project_root not in sys.path:
 from Agents.Oasis import Oasis
 from Agents.Crew import Chimp_crew
 
+class Type_Chimp_crew(Chimp_crew):
+    def __init__(self, id, pos, crew_size=10, initial_energy=100, strat=None):
+        super().__init__(id, pos, crew_size, initial_energy)
+        self.strat = strat
+        self.type = None
+        self.last_opp_type = -1
+
 
 class Type_Model:
-    def __init__(self, n_crews, n_oases, n_types, grid_size, oasis_spawn_chance=.05):
+    def __init__(self, n_crews, n_oases, n_types, grid_size, cost_fight = 10, oasis_spawn_chance=.05):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
@@ -26,15 +34,16 @@ class Type_Model:
         self.crews = {}
         self.oases = {}
         for i in range(n_crews):
-            self.add_chimp_crew(type=i%n_types)
+            self.add_chimp_crew(strat=i%n_types)
         for _ in range(n_oases):
             self.add_oasis()
         self.grid = []
         self.create_grid()
         self.data_track = [[], []]
+        self.cost_fight = cost_fight
         pass
 
-    def add_chimp_crew(self, pos=None, type=None):
+    def add_chimp_crew(self, pos=None, strat=None):
         """
         Generate a crew of chimps as an agent
         """
@@ -43,7 +52,7 @@ class Type_Model:
             while any(crew.pos == pos for crew in self.crews.values()):
                 pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
         id = next(self.id_gen)
-        new_crew = Chimp_crew(id, pos, type=type)
+        new_crew = Type_Chimp_crew(id, pos, strat=strat)
         self.crews[id] = new_crew
         return new_crew
     
@@ -77,11 +86,11 @@ class Type_Model:
         for oasis in self.oases.values():
             grid[oasis.X, oasis.Y] = -1
         for crew in self.crews.values():
-            grid[crew.X, crew.Y] =+ crew.type
+            grid[crew.X, crew.Y] =+ 1 + crew.strat
         self.grid = grid
 
 
-    def run(self, cost_defeat=10, cost_fight=100, prob_win = 1/2):
+    def run(self, prob_win = 1/2):
         """
         Run the model for one time-step
 
@@ -123,9 +132,28 @@ class Type_Model:
 
                 # Occupied oasis => Play game
                 elif neighboring_oases[1]:
+                    
                     oasis = self.oases[neighboring_oases[1][0]]
                     other_crew = [crew for crew in self.crews.values() if crew.pos == oasis.pos][0]
                     
+                    # c gets a type depending on strat
+                    for c in [crew, other_crew]:
+                        if c.strat == 0: # anxious type
+                            c.type = 0
+                        elif c.strat == 1: # show-off type
+                            c.type = 1
+                        elif c.strat == 2: # random type
+                            c.type = random.choice([0,1])
+                        elif c.strat == 3: # resentful type
+                            if c.last_opp_type == -1:
+                                c.type = random.choice([0,1])
+                            else:
+                                c.type = c.last_opp_type
+                    
+                    # record the last opponents type
+                    crew.last_opp_type = other_crew.type
+                    other_crew.last_opp_type = crew.type
+
                     if crew.type == 0 or crew.type < other_crew.type: # crew gets intimidated out by the defending crew
                         crew.unaccessible_oases.add(oasis)
                     
@@ -140,8 +168,8 @@ class Type_Model:
                             crew.pos = oasis.pos
                             crew.oasis = oasis
 
-                        crew.energy -= cost_fight
-                        other_crew.energy -= cost_fight
+                        crew.energy -= self.cost_fight
+                        other_crew.energy -= self.cost_fight
                         
                     else:
                         other_crew.oasis = None
