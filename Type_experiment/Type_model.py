@@ -23,7 +23,7 @@ class Type_Chimp_crew(Chimp_crew):
 
 
 class Type_Model(Model):
-    def __init__(self, n_crews, grid_size, n_types,  cost_fight = 10, oasis_spawn_proportional=True, abundance_factor=10, oasis_density=0.3, food_consumption_speed=nk1.5):
+    def __init__(self, n_crews, grid_size, n_types,  cost_fight = 10, oasis_spawn_proportional=True, abundance_factor=10, oasis_density=0.3, food_consumption_speed=1.5):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
