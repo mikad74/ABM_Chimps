@@ -21,7 +21,6 @@ class TestingModel(Model):
             # Check if at oasis, if so eat, else move
             if not crew.oasis:
                 
-
                 neighboring_oases = [[],[]]
                 for oasis in self.oases.values():
                     if abs(crew.X - oasis.X) <=1 and abs(crew.Y - oasis.Y) <= 1 and oasis.id not in crew.unaccessible_oases:
