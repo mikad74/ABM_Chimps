@@ -23,15 +23,16 @@ class Type_Chimp_crew(Chimp_crew):
 
 
 class Type_Model(Model):
-    def __init__(self, n_crews, grid_size, n_types,  cost_fight = 10):
+    def __init__(self, n_crews, grid_size, n_types,  cost_fight = 10, oasis_spawn_proportional=True, abundance_factor=10):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
         grid_size(int): length of the edge of the square grid
         '''
-        super().__init__(n_crews, grid_size, initialise_crews=False)
+        super().__init__(n_crews, grid_size, initialise_crews=False, oasis_spawn_proportional=oasis_spawn_proportional, abundance_factor=abundance_factor)
         self.crews = {}
-        self.initialize_typed_crews(n_crews, n_types)
+        self.initial_n_chimps = self.initialize_typed_crews(n_crews, n_types)
+        self.update_oases()
         self.cost_fight = cost_fight
         self.create_typed_grid()
         pass
@@ -39,6 +40,7 @@ class Type_Model(Model):
     def initialize_typed_crews(self, n_crews, n_types):
         for i in range(n_crews):
             self.add_chimp_crew(strat=i%n_types)
+        return self.n_chimps
 
     def add_chimp_crew(self, pos=None, strat=None):
         """
@@ -53,6 +55,8 @@ class Type_Model(Model):
         self.crews[id] = new_crew
         return new_crew
     
+
+
     def remove_chimp_crews(self):
         to_remove = [key for key, crew in self.crews.items() if crew.energy <= 0]
         for key in to_remove:

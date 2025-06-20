@@ -21,8 +21,9 @@ class Model:
         self.crew_consumption_rate = crew_consumption_rate
         self.crews = {}
         self.oases = {}
-        if initialise_crews: self.initialize_crews()
-        self.update_oases()
+        if initialise_crews: 
+            self.initial_n_chimps = self.initialize_crews()
+            self.update_oases()
         # for _ in range(n_oases):
         #     self.add_oasis(random.gauss(avg_oasis_size, avg_oasis_size*0.1))
         self.grid = []
@@ -30,10 +31,14 @@ class Model:
         self.data_track = [[], []]
 
 
+    @property
+    def n_chimps(self):
+        return sum([crew.crew_size for crew in self.crews.values()])
+
     def initialize_crews(self):
         for _ in range(self.n_crews):
             self.add_chimp_crew()
-            print(_)
+        return self.n_chimps
 
     def add_chimp_crew(self, pos=None, type=None):
         """
@@ -60,9 +65,9 @@ class Model:
             del self.oases[id]
 
         if self.oasis_spawn_proportional:
-            oasis_spawn_factor = len(self.crews)
+            oasis_spawn_factor = self.n_chimps
         else:
-            oasis_spawn_factor = self.n_crews
+            oasis_spawn_factor = self.initial_n_chimps
 
         current_food = sum([oasis.resource for oasis in self.oases.values()])
         food_required = oasis_spawn_factor * self.abundance_factor * self.crew_consumption_rate - current_food
