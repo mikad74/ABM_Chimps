@@ -14,6 +14,11 @@ class Chimp_crew(Agent):
         self.unaccessible_oases = set()
         self.type = type 
 
+    #************THE CONFLICT METHOD IS NOT BEING USED IN THE TYPE-INTERPRETATION*************
+    #there, the conflict is implemented within the model
+    
+    
+    
     def conflict(self, other_crew, oasis, 
                  cF=20, #should be based on their size
                  cL=10, #should be  based on the size of the oasis
