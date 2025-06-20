@@ -14,17 +14,7 @@ class TestingModel(Model):
 
 
         # Remove oasis if empty TODO: Spawn new oases
-        ids = []
-        for oasis in self.oases.values():
-            if oasis.resource <= 0:
-                ids.append(oasis.id)
-        for id in ids:
-            del self.oases[id]
-        p = random.random()
-        if len(self.oases.values()) <= 3 or p <= self.oasis_spawn_chance:
-            n = random.randint(0, 3)
-            for _ in range(n):  self.add_oasis()
-
+        self.update_oases()
 
 
         for crew in self.crews.values(): # TODO: Randomize order??
