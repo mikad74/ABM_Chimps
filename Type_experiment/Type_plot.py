@@ -2,19 +2,19 @@ from Type_model import Type_Model as Model
 import matplotlib.pyplot as plt
 import numpy as np
 
-n_sim = 500
-sim_length = 1000
+n_sim = 50
+sim_length = 100
 t = np.linspace(1, sim_length, sim_length)
 cost_fight_values = [10, 20, 50, 100]
 n_types = 4
 n_types_names = ['Anxious', 'Show-off', 'Random', 'Resentful']
-cost_fight_values = [10, 20, 50, 100]
 
 fig, axs = plt.subplots(2, 2, figsize=(16, 12))
 axs = axs.flatten()
 
 for idx, cost_fight in enumerate(cost_fight_values):
     data_track = []
+    data_track_oases = []
 
     for i in range(n_sim):
         model = Model(10* n_types, 20, n_types, 20, cost_fight=cost_fight)
@@ -28,6 +28,8 @@ for idx, cost_fight in enumerate(cost_fight_values):
         n_types_over_time.append(np.mean(n_types_i, axis=0))
         axs[idx].plot(t, n_types_over_time[i], label=f"{n_types_names[i]}")
 
+    n_oases_over_time = np.mean(data_track_oases, axis=0)
+    axs[idx].plot(t, n_oases_over_time, label='Oases', linestyle='--', color='black')
     axs[idx].set_title(f'cost_fight = {cost_fight}')
     axs[idx].set_xlabel('Time')
     axs[idx].set_ylabel('Number of Agents')

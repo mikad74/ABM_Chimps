@@ -56,6 +56,8 @@ class Type_Model:
         self.crews[id] = new_crew
         return new_crew
     
+
+
     def remove_chimp_crews(self):
         to_remove = [key for key, crew in self.crews.items() if crew.energy <= 0]
         for key in to_remove:
