@@ -10,7 +10,6 @@ cost_fight_values = [10, 20, 50, 100]
 #n_types_names = ['Anxious', 'Show-off', 'Random', 'Resentful']
 n_types = 5
 n_types_names = ['Anxious', 'Show-off', 'Random', 'Resentful', 'Agressive']
-cost_fight_values = [10, 20, 50, 100]
 
 fig, axs = plt.subplots(2, 2, figsize=(16, 12))
 axs = axs.flatten()
@@ -21,7 +20,7 @@ for idx, cost_fight in enumerate(cost_fight_values):
     for i in range(n_sim):
         model = Model(10* n_types, 20, n_types, 20, cost_fight=cost_fight)
         for j in range(sim_length):
-            model.run()
+            model.run(agressive=True, constant_win=False, cost_bluff=cost_fight_values[0]) # default is no arguments
         data_track.append(model.data_track[0])
 
     n_types_over_time = []
@@ -36,7 +35,7 @@ for idx, cost_fight in enumerate(cost_fight_values):
     axs[idx].legend()
 
 plt.tight_layout()
-plt.savefig("with_agressive_sophisticated.png", dpi=300)
+plt.savefig("with_agressive_const_win_F_cB.png", dpi=300)
 plt.show()
 
 '''
@@ -47,4 +46,6 @@ and never really attempting to show off (because cost of fight always deduced)
 but the "show-off" also fights, no distinction between bluff and fight
 - with agressive sophisticated: distinction between bluffing and fighting is introduced, no cost involved in bluffing, 1/2 chance of winning,
 cost involved in fighting, same chance of winning, if other agent is agressive, you'd have to fight anyways
+- with agressive constant win False: all the same as for "with agressive sophisticated", add conditioning the probability of
+winning the fight on the energy of the crews
 '''

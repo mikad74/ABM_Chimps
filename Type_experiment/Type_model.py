@@ -20,10 +20,10 @@ class Type_Chimp_crew(Chimp_crew):
         self.type = None
         self.last_opp_type = -1
 
-    def intimidate(self, other_crew, prob_win, oasis):
+    def intimidate(self, other_crew, prob_win, oasis, cost_bluff=0):
+        won = 0
         if random.random() > prob_win: # crew loses
             self.unaccessible_oases.add(oasis) 
-            return 0
 
         else: # crew wins
             other_crew.oasis = None
@@ -31,12 +31,29 @@ class Type_Chimp_crew(Chimp_crew):
             other_crew.unaccessible_oases.add(oasis) 
             self.pos = oasis.pos
             self.oasis = oasis
-            return 'won'
+            won = 'won'
+        
+        # pay cost of bluffing in any event
+        self.energy -= cost_bluff
+        other_crew.energy -= cost_bluff
+        
+        return won
             
-    def fight(self, other_crew, prob_win, oasis, cost_fight):
-        if random.random() > prob_win: # crew loses
-            self.unaccessible_oases.add(oasis) 
+    def fight(self, other_crew, prob_win, oasis, cost_fight, constant_win=True):
+        # define if the crew wins or loses
+        lose = False
+        if constant_win:
+            if random.random() > prob_win: # when prob_win is constant - define winning prob solely by it
+                lose = True           
+        else: # condition wins on the differences between the crews
+            prob_win = self.energy / (self.energy + other_crew.energy + 0.00001) #to prevent division by zero
+            #if they are both at <= 0, they will be removed after this step anyways
+            if random.random() > prob_win: 
+                lose = True
 
+        # assign consequences
+        if lose:
+            self.unaccessible_oases.add(oasis)        
         else: # crew wins
             other_crew.oasis = None
             other_crew.pos = self.pos[:]
@@ -44,6 +61,7 @@ class Type_Chimp_crew(Chimp_crew):
             self.pos = oasis.pos
             self.oasis = oasis
 
+        # pay cost of fight in any event
         self.energy -= cost_fight
         other_crew.energy -= cost_fight
 
@@ -123,7 +141,12 @@ class Type_Model:
         self.grid = grid
 
 
-    def run(self, prob_win = 1/2, agressive = False):
+    def run(self, 
+            prob_win = 1/2, # default stable random prob of winning a fight or a bluff-fight
+            agressive = False, # default for not having type "agressive", adds sophisticated version of "agressive" if True
+            constant_win=True, # default for constant prob_win that is independent of size, makes fight dependent on size if False
+            cost_bluff = 0 # default is no cost, but you can pass it to see if the dynamics changes
+            ):
         """
         Run the model for one time-step
 
@@ -192,8 +215,13 @@ class Type_Model:
                     
                     #------------record the payoff------------
                     
-                    #____________DEFINED BY ARGUMENT agressive = ____________
+                    #____________DEFINED BY ARGUMENT agressive ____________
+                    '''
+                    Also accommodates the dependency of winning on the crew energy
+                    by adding an optional constant_win argument into the .fight method
+                    '''
                     if agressive:
+                                                
                         if crew.type == 0: #if anxious
                             crew.unaccessible_oases.add(oasis) #retreat
                         
@@ -201,21 +229,21 @@ class Type_Model:
                             crew.reclaim(other_crew, oasis) #always get their oasis
                             
                         elif crew.type == 1: #if show-off
-                            result = crew.intimidate(other_crew, prob_win, oasis) # prob 1/2 to win, but no cost of fight
+                            result = crew.intimidate(other_crew, prob_win, oasis, cost_bluff = cost_bluff) # prob 1/2 to win, but no/lower cost 
                         
                             #if the other one is no fighter, it just ends here, whatever the result was
                             #if the defender is a fighter, and they lost bluffing, then there is a fight    
                             if other_crew.type == 2 and result: #the crew won -> the other_crew lost
-                                crew.fight(other_crew, prob_win, oasis, self.cost_fight)
+                                crew.fight(other_crew, prob_win, oasis, self.cost_fight, constant_win=constant_win)
                         
                         elif crew.type == 2:
-                            crew.fight(other_crew, prob_win, oasis, self.cost_fight) #nothing depends on the defender, the crew just attacks
-                            
+                            crew.fight(other_crew, prob_win, oasis, self.cost_fight, constant_win=constant_win) #nothing depends on the defender, the crew just attacks
+                                    
                     #*******ORIGINAL VERSION BY BALTHAZAR, practically only type 0 and type 1*********
-                    '''
-                    Also accommodates primitive agressive type, corresponding to visualisation "with_agressive"
-                    type 0 + type 1 corresponds to "without_agressive"
-                    '''
+
+                    #Also accommodates primitive agressive type, corresponding to visualisation "with_agressive"
+                    #type 0 + type 1 corresponds to "without_agressive"
+
                     else:
                         if crew.type == 0 or crew.type < other_crew.type: # crew gets intimidated out by the defending crew
                             crew.unaccessible_oases.add(oasis)                 
