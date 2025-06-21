@@ -6,8 +6,10 @@ n_sim = 500 # default 500
 sim_length = 1000 # default 1000
 t = np.linspace(1, sim_length, sim_length)
 cost_fight_values = [10, 20, 50, 100]
-n_types = 4
-n_types_names = ['Anxious', 'Show-off', 'Random', 'Resentful']
+#n_types = 4
+#n_types_names = ['Anxious', 'Show-off', 'Random', 'Resentful']
+n_types = 5
+n_types_names = ['Anxious', 'Show-off', 'Random', 'Resentful', 'Agressive']
 cost_fight_values = [10, 20, 50, 100]
 
 fig, axs = plt.subplots(2, 2, figsize=(16, 12))
@@ -34,5 +36,15 @@ for idx, cost_fight in enumerate(cost_fight_values):
     axs[idx].legend()
 
 plt.tight_layout()
-plt.savefig("without_agressive.png", dpi=300)
+plt.savefig("with_agressive_sophisticated.png", dpi=300)
 plt.show()
+
+'''
+Naming of the plots:
+- without agressive: the initial Balthazar's distiction between always retreating or sometimes attempting to fight, 
+and never really attempting to show off (because cost of fight always deduced)
+- with agressive: adding "agressive" type which is kind of third layer, it always fights, 
+but the "show-off" also fights, no distinction between bluff and fight
+- with agressive sophisticated: distinction between bluffing and fighting is introduced, no cost involved in bluffing, 1/2 chance of winning,
+cost involved in fighting, same chance of winning, if other agent is agressive, you'd have to fight anyways
+'''
