@@ -71,9 +71,9 @@ class Type_Model(Model):
         grid = np.zeros((self.grid_size, self.grid_size), dtype='f')
         
         for oasis in self.oases.values():
-            grid[oasis.X, oasis.Y] = -1
+            grid[oasis.X, oasis.Y] = 50
         for crew in self.crews.values():
-            grid[crew.X, crew.Y] =+ 1 + crew.strat
+            grid[crew.X, crew.Y] += 1 + crew.strat
         self.grid = grid
 
 
@@ -166,6 +166,6 @@ class Type_Model(Model):
             
         self.remove_chimp_crews()
 
-        self.create_grid()
+        self.create_typed_grid()
         self.data_track[0].append(list(self.crews.values()))
         self.data_track[1].append(list(self.oases.values()))
