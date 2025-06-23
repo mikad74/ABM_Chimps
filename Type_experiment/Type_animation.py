@@ -2,9 +2,9 @@ from Type_model import Type_Model as Model
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
-sim_length = 100
-n_types = 9
-model = Model(n_types, 20, n_types, 20)
+sim_length = 300
+n_types = 3
+model = Model(10*n_types, 35, n_types, 20)
 fig, ax = plt.subplots()
 img = ax.imshow(model.grid, vmin=-1, vmax=n_types)
 

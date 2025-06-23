@@ -5,12 +5,14 @@ def euclidean_distance(pos1, pos2):
     return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
 
 class Chimp_crew(Agent):
-    def __init__(self, id, pos, crew_size=10, initial_energy=100):
+    def __init__(self, id, pos, crew_size=10, initial_energy=100, consumption_rate=1, expenditure=1):
         self.crew_size = crew_size # size of crew
         self.id = id
         self.pos = pos # position of the crew on the spatial domain
         self.energy = initial_energy # energy of our crew: goes up when the crew is currently occupying a resource rich oasis, goes down whem the crew moves, fights
         self.oasis = None
+        self.crew_consumption_rate = consumption_rate
+        self.crew_energy_expenditure = expenditure
         self.unaccessible_oases = set()
 
     #************THE CONFLICT METHOD IS NOT BEING USED IN THE TYPE-INTERPRETATION*************
@@ -101,6 +103,7 @@ class Chimp_crew(Agent):
 
         
         
+        self.energy -= self.crew_size * self.crew_energy_expenditure
         if len(available_nbh)>1 and oases:
             # based on global knowledge of all oases, we pick the closest
             accessible_oases = [oasis for oasis in oases if oasis.id not in self.unaccessible_oases]
@@ -125,7 +128,7 @@ class Chimp_crew(Agent):
             self.pos = available_nbh[0]
     
     def consume(self): # TODO: expand consume
-        food, remaining = self.oasis.get_consumed(self.crew_size * 3)
+        food, remaining = self.oasis.get_consumed(self.crew_size * self.crew_consumption_rate)
         self.energy += food
         if remaining <= 0 :
             self.oasis = None
