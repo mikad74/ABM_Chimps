@@ -14,15 +14,14 @@ from Agents.Oasis import Oasis
 from Agents.Crew import Chimp_crew
 
 class Type_Chimp_crew(Chimp_crew):
-    def __init__(self, id, pos, crew_size=10, initial_energy=100, strat=None):
+    def __init__(self, id, pos, crew_size=10, initial_energy=1000, strat=None):
         super().__init__(id, pos, crew_size, initial_energy)
         self.strat = strat
         self.type = None
         self.last_opp_type = -1
 
-
 class Type_Model:
-    def __init__(self, n_crews, n_oases, n_types, grid_size, cost_fight = 10, oasis_spawn_chance=.05):
+    def __init__(self, n_crews, n_oases, n_types, grid_size, resource = 700, cost_fight = 10, oasis_spawn_chance=.05):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
@@ -31,6 +30,7 @@ class Type_Model:
         self.id_gen = count()
         self.grid_size = grid_size
         self.oasis_spawn_chance = oasis_spawn_chance
+        self.resource = resource
         self.crews = {}
         self.oases = {}
         for i in range(n_crews):
@@ -76,8 +76,7 @@ class Type_Model:
             pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
             while any(oasis.pos == pos for oasis in self.oases.values()):
                 pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
-        resource = random.randint(50, 80)
-        new_oasis = Oasis(id, pos, resource)
+        new_oasis = Oasis(id, pos, self.resource)
         self.oases[id] = new_oasis
         return new_oasis
     
@@ -88,7 +87,7 @@ class Type_Model:
         for oasis in self.oases.values():
             grid[oasis.X, oasis.Y] = -1
         for crew in self.crews.values():
-            grid[crew.X, crew.Y] =+ 1 + crew.strat
+            grid[crew.X, crew.Y] += 1 + crew.strat
         self.grid = grid
 
 
@@ -97,7 +96,6 @@ class Type_Model:
         Run the model for one time-step
 
         """
-
         ids = []
         for oasis in self.oases.values():
             if oasis.resource <= 0:
@@ -105,11 +103,15 @@ class Type_Model:
         for id in ids:
             del self.oases[id]
 
-        n_chimps = sum([crew.crew_size for crew in self.crews.values()])
         tot_res = sum([oasis.resource for oasis in self.oases.values()])
+        required_resource = 180 * len(self.crews)
+        missing_resource = required_resource - tot_res
 
-        if tot_res < 100 * n_chimps :
-            self.add_oasis()
+        if missing_resource > 0:
+            num_oases_to_add = int(np.ceil(missing_resource / self.resource))
+            for _ in range(num_oases_to_add):
+                self.add_oasis()
+
 
         for crew in self.crews.values(): # TODO: Randomize order??
             # Check if at oasis, if so eat, else move
@@ -185,8 +187,6 @@ class Type_Model:
                     crew.move(self.grid_size, self.oases.values(), self.crews.values())
             else:
                 crew.consume()
-
-        for crew in self.crews.values():
             crew.energy -= crew.crew_size
             
         self.remove_chimp_crews()
@@ -194,3 +194,10 @@ class Type_Model:
         self.create_grid()
         self.data_track[0].append(list(self.crews.values()))
         self.data_track[1].append(list(self.oases.values()))
+
+        # seasonal effect : between the 500th and 800th steps there are bigger/rarer oases
+        if 800 > len(self.data_track[0]) > 500:
+            self.resource = 2000
+        
+        else:
+            self.resource = 700
