@@ -3,13 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-<<<<<<< HEAD
 n_sim = 20
 sim_length = 500
-=======
-n_sim = 10
-sim_length = 1500
->>>>>>> 3f379c3b7fef119d34280f92ebb7438862f63da1
 t = np.linspace(1, sim_length, sim_length)
 cost_fight_values = [10, 20, 50, 100]
 resource_values = [25, 50, 75, 100]
