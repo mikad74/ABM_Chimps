@@ -104,7 +104,7 @@ class Chimp_crew(Agent):
         
         
         self.energy -= self.crew_size * self.crew_energy_expenditure
-        if len(available_nbh)>1 and oases:
+        if len(available_nbh) > 1 and oases:
             # based on global knowledge of all oases, we pick the closest
             accessible_oases = [oasis for oasis in oases if oasis.id not in self.unaccessible_oases]
             if accessible_oases:

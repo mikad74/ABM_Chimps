@@ -21,7 +21,7 @@ class Type_Chimp_crew(Chimp_crew):
         self.last_opp_type = -1
 
 class Type_Model:
-    def __init__(self, n_crews, n_oases, n_types, grid_size, resource = 700, cost_fight = 10, oasis_spawn_chance=.05):
+    def __init__(self, n_crews, n_oases, n_types, grid_size, resource = 100, cost_fight = 10, oasis_spawn_chance=.05):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
@@ -76,7 +76,9 @@ class Type_Model:
             pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
             while any(oasis.pos == pos for oasis in self.oases.values()):
                 pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
-        new_oasis = Oasis(id, pos, self.resource)
+
+        resource = random.randint(self.resource // 2, self.resource * 2)
+        new_oasis = Oasis(id, pos, resource)
         self.oases[id] = new_oasis
         return new_oasis
     
@@ -85,9 +87,9 @@ class Type_Model:
         grid = np.zeros((self.grid_size, self.grid_size), dtype='f')
         
         for oasis in self.oases.values():
-            grid[oasis.X, oasis.Y] = -1
+            grid[oasis.X, oasis.Y] = 1
         for crew in self.crews.values():
-            grid[crew.X, crew.Y] += 1 + crew.strat
+            grid[crew.X, crew.Y] = 2
         self.grid = grid
 
 
@@ -104,7 +106,7 @@ class Type_Model:
             del self.oases[id]
 
         tot_res = sum([oasis.resource for oasis in self.oases.values()])
-        required_resource = 180 * len(self.crews)
+        required_resource = 300 * len(self.crews)
         missing_resource = required_resource - tot_res
 
         if missing_resource > 0:
@@ -162,6 +164,7 @@ class Type_Model:
                         crew.unaccessible_oases.add(oasis)
                     
                     elif crew.type == other_crew.type: # display are equal => fight
+
                         if random.random() > prob_win: # crew losess
                             crew.unaccessible_oases.add(oasis) 
 
@@ -178,7 +181,7 @@ class Type_Model:
                     else:
                         other_crew.oasis = None
                         other_crew.pos = crew.pos[:]
-                        other_crew.unaccessible_oases.add(oasis) 
+                        other_crew.unaccessible_oases.add(oasis)
                         crew.pos = oasis.pos
                         crew.oasis = oasis
 
