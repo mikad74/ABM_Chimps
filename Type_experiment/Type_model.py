@@ -12,36 +12,36 @@ if project_root not in sys.path:
 
 from Agents.Oasis import Oasis
 from Agents.Crew import Chimp_crew
-from Model.Model import Model
 
 class Type_Chimp_crew(Chimp_crew):
-    def __init__(self, id, pos, crew_size=10, initial_energy=1000, strat=None, consumption_rate=1, expenditure=1):
-        super().__init__(id, pos, crew_size, initial_energy, consumption_rate=consumption_rate, expenditure=expenditure)
+    def __init__(self, id, pos, crew_size=10, initial_energy=1000, strat=None):
+        super().__init__(id, pos, crew_size, initial_energy)
         self.strat = strat
         self.type = None
         self.last_opp_type = -1
 
-class Type_Model(Model):
-    def __init__(self, n_crews, grid_size, n_types,  cost_fight = 10, oasis_spawn_proportional=True, abundance_factor=10, oasis_density=0.3, food_consumption_speed=1.5):
+class Type_Model:
+    def __init__(self, n_crews, n_oases, n_types, grid_size, resource = 100, cost_fight = 10, oasis_spawn_chance=.05):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
         grid_size(int): length of the edge of the square grid
         '''
-        super().__init__(n_crews, grid_size, initialise_crews=False, oasis_spawn_proportional=oasis_spawn_proportional, abundance_factor=abundance_factor, oasis_density=oasis_density, food_consumption_speed=food_consumption_speed)
+        self.id_gen = count()
+        self.grid_size = grid_size
+        self.oasis_spawn_chance = oasis_spawn_chance
+        self.resource = resource
         self.crews = {}
-        self.initial_n_chimps = self.initialize_typed_crews(n_crews, n_types)
-        self.avg_oasis_size = self.food_required / (oasis_density * grid_size * grid_size )
-        self.update_oases()
-        self.cost_fight = cost_fight
-        self.create_typed_grid()
-        pass
-
-    
-    def initialize_typed_crews(self, n_crews, n_types):
+        self.oases = {}
         for i in range(n_crews):
             self.add_chimp_crew(strat=i%n_types)
-        return self.n_chimps
+        for _ in range(n_oases):
+            self.add_oasis()
+        self.grid = []
+        self.create_grid()
+        self.data_track = [[], []]
+        self.cost_fight = cost_fight
+        pass
 
     def add_chimp_crew(self, pos=None, strat=None):
         """
@@ -67,14 +67,29 @@ class Type_Model(Model):
             del self.crews[key]
 
 
+    def add_oasis(self, pos=None):
+        """
+        Generate a new oasis
+        """
+        id = next(self.id_gen)
+        if not pos or any(oasis.pos == pos for oasis in self.oases.values()):
+            pos = (np.random.randint(0,self.grid_size), np.random.randint(0,self.grid_size))
+            while any(oasis.pos == pos for oasis in self.oases.values()):
+                pos = (np.random.randint(0,self.grid_size), np.random.randint(0,self.grid_size))
+
+        resource = random.randint(self.resource // 2, self.resource * 3 //2)
+        new_oasis = Oasis(id, pos, resource)
+        self.oases[id] = new_oasis
+        return new_oasis
+    
         
-    def create_typed_grid(self):
+    def create_grid(self):
         grid = np.zeros((self.grid_size, self.grid_size), dtype='f')
         
         for oasis in self.oases.values():
-            grid[oasis.X, oasis.Y] = 50
+            grid[oasis.X, oasis.Y] = 1
         for crew in self.crews.values():
-            grid[crew.X, crew.Y] += 1 + crew.strat
+            grid[crew.X, crew.Y] += 2
         self.grid = grid
 
 
@@ -103,7 +118,6 @@ class Type_Model(Model):
                 self.add_oasis()
             
 
-        self.update_oases()
 
         for crew in self.crews.values(): # TODO: Randomize order??
             # Check if at oasis, if so eat, else move
