@@ -22,7 +22,7 @@ dark_purple_cmap = LinearSegmentedColormap.from_list(
 n_sim = 200
 model = Model(40, 50, 4, cost_fight=10, oasis_spawn_proportional=True, abundance_factor=10, oasis_density=.1, food_consumption_speed=.33)
 
-fig, ax = plt.subplots(figsize=(18,18))
+fig, ax = plt.subplots(figsize=(14,14))
 img = ax.imshow(model.grid, cmap=dark_purple_cmap)
 
 # Scatter plots for each value

@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-n_sim = 10
-sim_length = 1500
+n_sim = 1
+sim_length = 110
 t = np.linspace(1, sim_length, sim_length)
 cost_fight_values = [10, 20, 50, 100]
 n_types_names = ['Anxious', 'Show-off', 'Random', 'Resentful']
@@ -20,7 +20,7 @@ for idx, cost_fight in enumerate(tqdm(cost_fight_values)):
 
     for i in range(n_sim):
         food_per_chimp = []
-        model = Model(5 * n_types, 100, n_types,  cost_fight=cost_fight)
+        model = Model(5 * n_types, 100, n_types,  cost_fight=cost_fight, oasis_density=.1, abundance_factor=105)
         for j in range(sim_length):
             model.run()
             if [crew for crew in model.crews.values()]:

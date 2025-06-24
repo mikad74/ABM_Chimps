@@ -77,8 +77,9 @@ class Model:
             del self.oases[id]
 
         oases_required = int(-(self.food_required // -self.avg_oasis_size))
-        for _ in range(oases_required):
-            self.add_oasis(random.gauss(self.avg_oasis_size, self.avg_oasis_size/3))
+        if oases_required > 0:
+            for _ in range(oases_required):
+                self.add_oasis(random.gauss(self.avg_oasis_size, self.avg_oasis_size/3))
 
 
     def add_oasis(self, size, pos=None):

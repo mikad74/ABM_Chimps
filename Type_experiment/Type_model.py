@@ -1,6 +1,5 @@
 import numpy as np
 import random
-from itertools import count
 import sys
 import os
 
@@ -10,7 +9,6 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from Agents.Oasis import Oasis
 from Agents.Crew import Chimp_crew
 from Model.Model import Model
 
@@ -22,7 +20,7 @@ class Type_Chimp_crew(Chimp_crew):
         self.last_opp_type = -1
 
 class Type_Model(Model):
-    def __init__(self, n_crews, grid_size, n_types,  cost_fight = 10, oasis_spawn_proportional=True, abundance_factor=10, oasis_density=0.3, food_consumption_speed=1.5):
+    def __init__(self, n_crews, grid_size, n_types,  cost_fight = 10, oasis_spawn_proportional=True, abundance_factor=10, oasis_density=0.1, food_consumption_speed=.33):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
@@ -52,7 +50,7 @@ class Type_Model(Model):
             while any(crew.pos == pos for crew in self.crews.values()):
                 pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
         id = next(self.id_gen)
-        new_crew = Type_Chimp_crew(id, pos, strat=strat)
+        new_crew = Type_Chimp_crew(id, pos, strat=strat, consumption_rate=self.crew_consumption_rate)
         self.crews[id] = new_crew
         return new_crew
     
@@ -132,17 +130,17 @@ class Type_Model(Model):
                     other_crew.last_opp_type = crew.type
 
                     if crew.type == 0 or crew.type < other_crew.type: # crew gets intimidated out by the defending crew
-                        crew.unaccessible_oases.add(oasis)
+                        crew.unaccessible_oases.add(oasis.id)
                     
                     elif crew.type == other_crew.type: # display are equal => fight
 
                         if random.random() > prob_win: # crew losess
-                            crew.unaccessible_oases.add(oasis) 
+                            crew.unaccessible_oases.add(oasis.id) 
 
                         else: # crew wins
                             other_crew.oasis = None
                             other_crew.pos = crew.pos[:]
-                            other_crew.unaccessible_oases.add(oasis) 
+                            other_crew.unaccessible_oases.add(oasis.id) 
                             crew.pos = oasis.pos
                             crew.oasis = oasis
 
@@ -152,7 +150,7 @@ class Type_Model(Model):
                     else:
                         other_crew.oasis = None
                         other_crew.pos = crew.pos[:]
-                        other_crew.unaccessible_oases.add(oasis)
+                        other_crew.unaccessible_oases.add(oasis.id)
                         crew.pos = oasis.pos
                         crew.oasis = oasis
 
@@ -161,11 +159,11 @@ class Type_Model(Model):
                     crew.move(self.grid_size, self.oases.values(), self.crews.values())
             else:
                 crew.consume()
-            crew.energy -= crew.crew_size
+            # crew.energy -= crew.crew_size
             
         self.remove_chimp_crews()
 
-        self.create_grid()
+        self.create_typed_grid()
         self.data_track[0].append(list(self.crews.values()))
         self.data_track[1].append(list(self.oases.values()))
 
