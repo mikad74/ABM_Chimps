@@ -73,11 +73,11 @@ class Type_Model:
         """
         id = next(self.id_gen)
         if not pos or any(oasis.pos == pos for oasis in self.oases.values()):
-            pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
+            pos = (np.random.randint(0,self.grid_size), np.random.randint(0,self.grid_size))
             while any(oasis.pos == pos for oasis in self.oases.values()):
-                pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
+                pos = (np.random.randint(0,self.grid_size), np.random.randint(0,self.grid_size))
 
-        resource = random.randint(self.resource // 2, self.resource * 2)
+        resource = random.randint(self.resource // 2, self.resource * 3 //2)
         new_oasis = Oasis(id, pos, resource)
         self.oases[id] = new_oasis
         return new_oasis
@@ -89,7 +89,7 @@ class Type_Model:
         for oasis in self.oases.values():
             grid[oasis.X, oasis.Y] = 1
         for crew in self.crews.values():
-            grid[crew.X, crew.Y] = 2
+            grid[crew.X, crew.Y] += 2
         self.grid = grid
 
 
@@ -106,20 +106,23 @@ class Type_Model:
             del self.oases[id]
 
         tot_res = sum([oasis.resource for oasis in self.oases.values()])
-        required_resource = 300 * len(self.crews)
+        required_resource = 70 * len(self.crews.values())
         missing_resource = required_resource - tot_res
 
         if missing_resource > 0:
             num_oases_to_add = int(np.ceil(missing_resource / self.resource))
+            if num_oases_to_add > self.grid_size**2 - (len(self.oases.values()) + len(self.crews.values())):
+                num_oases_to_add = self.grid_size**2 - (len(self.oases.values()) + len(self.crews.values()) + 1)
+
             for _ in range(num_oases_to_add):
                 self.add_oasis()
+            
 
 
         for crew in self.crews.values(): # TODO: Randomize order??
             # Check if at oasis, if so eat, else move
             if not crew.oasis:
                 
-
                 neighboring_oases = [[],[]]
                 for oasis in self.oases.values():
                     if abs(crew.X - oasis.X) <=1 and abs(crew.Y - oasis.Y) <= 1 and oasis.id not in crew.unaccessible_oases:
@@ -148,30 +151,27 @@ class Type_Model:
                             c.type = 0
                         elif c.strat == 1: # show-off type
                             c.type = 1
-                        elif c.strat == 2: # random type
+                        elif c.strat == 3 and c.last_opp_type != -1: # resentful type
+                            c.type = c.last_opp_type
+                        else: # random type
                             c.type = random.choice([0,1])
-                        elif c.strat == 3: # resentful type
-                            if c.last_opp_type == -1:
-                                c.type = random.choice([0,1])
-                            else:
-                                c.type = c.last_opp_type
-                    
+
                     # record the last opponents type
                     crew.last_opp_type = other_crew.type
                     other_crew.last_opp_type = crew.type
 
                     if crew.type == 0 or crew.type < other_crew.type: # crew gets intimidated out by the defending crew
-                        crew.unaccessible_oases.add(oasis)
+                        crew.unaccessible_oases.add(oasis.id)
                     
                     elif crew.type == other_crew.type: # display are equal => fight
 
                         if random.random() > prob_win: # crew losess
-                            crew.unaccessible_oases.add(oasis) 
+                            crew.unaccessible_oases.add(oasis.id) 
 
                         else: # crew wins
                             other_crew.oasis = None
                             other_crew.pos = crew.pos[:]
-                            other_crew.unaccessible_oases.add(oasis) 
+                            other_crew.unaccessible_oases.add(oasis.id) 
                             crew.pos = oasis.pos
                             crew.oasis = oasis
 
@@ -181,7 +181,7 @@ class Type_Model:
                     else:
                         other_crew.oasis = None
                         other_crew.pos = crew.pos[:]
-                        other_crew.unaccessible_oases.add(oasis)
+                        other_crew.unaccessible_oases.add(oasis.id)
                         crew.pos = oasis.pos
                         crew.oasis = oasis
 
@@ -190,7 +190,6 @@ class Type_Model:
                     crew.move(self.grid_size, self.oases.values(), self.crews.values())
             else:
                 crew.consume()
-            crew.energy -= crew.crew_size
             
         self.remove_chimp_crews()
 
@@ -199,8 +198,8 @@ class Type_Model:
         self.data_track[1].append(list(self.oases.values()))
 
         # seasonal effect : between the 500th and 800th steps there are bigger/rarer oases
-        if 800 > len(self.data_track[0]) > 500:
-            self.resource = 2000
+        #if 800 > len(self.data_track[0]) > 500:
+        #    self.resource = 2000
         
-        else:
-            self.resource = 700
+        #else:
+        #    self.resource = 700

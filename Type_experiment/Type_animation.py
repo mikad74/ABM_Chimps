@@ -3,20 +3,25 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 import numpy as np
 
-sim_length = 500
+sim_length = 1000
 t = np.linspace(1, sim_length, sim_length)
-cost_fight_values = [10, 20, 50, 100]
 n_types_names = ['Anxious', 'Show-off', 'Random', 'Resentful']
 n_types = len(n_types_names)
-model = Model(5 * n_types, 100, n_types, 20, cost_fight=10)
+model = Model(10 * n_types, 100, n_types, 20, resource = 50, cost_fight=10)
 fig, ax = plt.subplots()
-img = ax.imshow(model.grid, vmin=0, vmax=2)
+img = ax.imshow(model.grid, vmin=0, vmax=3)
 
 def update_ani(frame):
     model.run()
+    n_crew = len(model.data_track[0][-1])
+    food = sum([oasis.resource for oasis in model.data_track[1][-1]])
+    if n_crew > 0:
+        food_crew = food/n_crew
+    else:
+        food_crew = 'no crews'
     img.set_data(model.grid)
-    ax.set_title(f"Time Step: {frame}")
+    ax.set_title(f"Number of crews: {n_crew}, food per crew = {food_crew}, type step = {frame}")
     return [img]
 
 ani = animation.FuncAnimation(fig, update_ani, frames=sim_length, interval=1, blit=False)
-ani.save("chimp_simulation.mp4", fps=10)
+ani.save("Type_experiment/chimp_simulation.mp4", fps=5)
