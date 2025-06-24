@@ -7,7 +7,7 @@ class Oasis(Agent):
         self.pos = pos
         self.resource = resource
         self.occupied = False
-    
+
     def get_consumed(self, amount):
         food = min(amount, self.resource)
         self.resource -= food
