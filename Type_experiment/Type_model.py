@@ -14,14 +14,15 @@ from Agents.Oasis import Oasis
 from Agents.Crew import Chimp_crew
 
 class Type_Chimp_crew(Chimp_crew):
-    def __init__(self, id, pos, crew_size=10, initial_energy=1000, strat=None):
+    def __init__(self, id, pos, crew_size=10, initial_energy=300, strat=None, ram = 10):
         super().__init__(id, pos, crew_size, initial_energy)
         self.strat = strat
         self.type = None
         self.last_opp_type = -1
+        self.recent_history = [0 for _ in range(ram)]
 
 class Type_Model:
-    def __init__(self, n_crews, n_oases, n_types, grid_size, resource = 100, cost_fight = 10, oasis_spawn_chance=.05):
+    def __init__(self, n_crews, n_oases, n_types, grid_size, resource = 150, cost_fight = 10, oasis_spawn_chance=.05):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
@@ -30,6 +31,7 @@ class Type_Model:
         self.id_gen = count()
         self.grid_size = grid_size
         self.oasis_spawn_chance = oasis_spawn_chance
+        self.n_crews = n_crews
         self.resource = resource
         self.crews = {}
         self.oases = {}
@@ -63,9 +65,8 @@ class Type_Model:
         for key in to_remove:
             crew = self.crews[key]
             if crew.oasis:
-                crew.oasis.occupied = False  # Free the oasis
+                crew.oasis.occupied = False # Free the oasis
             del self.crews[key]
-
 
     def add_oasis(self, pos=None):
         """
@@ -106,7 +107,7 @@ class Type_Model:
             del self.oases[id]
 
         tot_res = sum([oasis.resource for oasis in self.oases.values()])
-        required_resource = 70 * len(self.crews.values())
+        required_resource = 100 * self.n_crews
         missing_resource = required_resource - tot_res
 
         if missing_resource > 0:
@@ -116,8 +117,6 @@ class Type_Model:
 
             for _ in range(num_oases_to_add):
                 self.add_oasis()
-            
-
 
         for crew in self.crews.values(): # TODO: Randomize order??
             # Check if at oasis, if so eat, else move
@@ -138,12 +137,20 @@ class Type_Model:
                     crew.pos = (oasis.pos)
                     crew.oasis = oasis
                     oasis.occupied = True
+                    crew.recent_history.append(0)
+                    crew.recent_history = crew.recent_history[1:]
+
 
                 # Occupied oasis => Play game
+                
                 elif neighboring_oases[1]:
-                    
                     oasis = self.oases[neighboring_oases[1][0]]
                     other_crew = [crew for crew in self.crews.values() if crew.pos == oasis.pos][0]
+
+                    crew.recent_history.append(1) # record that a conflict happened
+                    crew.recent_history = crew.recent_history[1:]
+                    #other_crew.recent_history.append(1)
+                    #other_crew.recent_history = other_crew.recent_history[1:]
                     
                     # c gets a type depending on strat
                     for c in [crew, other_crew]:
@@ -151,7 +158,10 @@ class Type_Model:
                             c.type = 0
                         elif c.strat == 1: # show-off type
                             c.type = 1
-                        elif c.strat == 3 and c.last_opp_type != -1: # resentful type
+                        elif c.strat == 3: # flexible type
+                            w = sum(c.recent_history)/len(c.recent_history)
+                            c.type = random.choice(c.recent_history)
+                        elif c.strat == 4 and c.last_opp_type != -1: # resentful type
                             c.type = c.last_opp_type
                         else: # random type
                             c.type = random.choice([0,1])
@@ -188,8 +198,10 @@ class Type_Model:
                 # No oasis near, move closer to oasis
                 else:
                     crew.move(self.grid_size, self.oases.values(), self.crews.values())
+
             else:
                 crew.consume()
+
             
         self.remove_chimp_crews()
 
@@ -198,8 +210,8 @@ class Type_Model:
         self.data_track[1].append(list(self.oases.values()))
 
         # seasonal effect : between the 500th and 800th steps there are bigger/rarer oases
-        #if 800 > len(self.data_track[0]) > 500:
-        #    self.resource = 2000
+        if len(self.data_track[0]) in [500, 1100, 1700]:
+            self.resource *= 2
         
-        #else:
-        #    self.resource = 700
+        if len(self.data_track[0]) == [800, 1400]:
+            self.resource //= 2

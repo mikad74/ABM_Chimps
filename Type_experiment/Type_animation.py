@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 import numpy as np
 
-sim_length = 1000
+sim_length = 2000
 t = np.linspace(1, sim_length, sim_length)
-n_types_names = ['Anxious', 'Show-off', 'Random', 'Resentful']
+n_types_names = ['Anxious', 'Show-off', 'Random', 'Flexible', 'Resentful']
 n_types = len(n_types_names)
-model = Model(10 * n_types, 100, n_types, 20, resource = 50, cost_fight=10)
+model = Model(10 * n_types, 100, n_types, 20, resource = 150, cost_fight = 10)
 fig, ax = plt.subplots()
 img = ax.imshow(model.grid, vmin=0, vmax=3)
 
@@ -24,4 +24,4 @@ def update_ani(frame):
     return [img]
 
 ani = animation.FuncAnimation(fig, update_ani, frames=sim_length, interval=1, blit=False)
-ani.save("Type_experiment/chimp_simulation.mp4", fps=5)
+ani.save("Type_experiment/chimp_simulation.mp4", fps=20)
