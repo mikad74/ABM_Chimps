@@ -3,8 +3,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
+<<<<<<< HEAD
 n_sim = 20
 sim_length = 500
+=======
+n_sim = 10
+sim_length = 1500
+>>>>>>> 3f379c3b7fef119d34280f92ebb7438862f63da1
 t = np.linspace(1, sim_length, sim_length)
 cost_fight_values = [10, 20, 50, 100]
 resource_values = [25, 50, 75, 100]
@@ -48,7 +53,7 @@ for idx, resource in enumerate(tqdm(resource_values)):
     #axs[idx].axvspan(500, 800, color='gray', alpha=0.05)
     axs[idx].set_ylabel('Number of Agents')
     axs[idx].legend()
-    print(sum([n_types_over_time[i][-1] for i in range(n_types)]))
+    # print(sum([n_types_over_time[i][-1] for i in range(n_types)]))
     #print(food_per_chimp_overtime[-1])
 
 plt.tight_layout()
