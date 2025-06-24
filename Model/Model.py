@@ -29,7 +29,7 @@ class Model:
         self.oasis_spawn_proportional = oasis_spawn_proportional
         self.abundance_factor = abundance_factor
         self.crew_energy_expenditure = crew_energy_expenditure
-        self.crew_consumption_rate = food_consumption_speed * 2 * np.sqrt(oasis_density)
+        self.crew_consumption_rate = food_consumption_speed * 2 * np.sqrt(self.oasis_density)
         self.crews = {}
         self.oases = {}
         if initialise_crews:
@@ -40,10 +40,20 @@ class Model:
         self.data_track = [[], []]
 
     @property
+    def n_oases(self):
+        return sum([1 for oasis in self.oases.values()])
+
+    @property
+    def n_oases_required(self):
+        return max(int(self.oasis_density * self.grid_size * self.grid_size - self.n_oases), 1)
+
+    @property
     def avg_oasis_size(self):
-        return self.food_required / (
-            self.oasis_density * self.grid_size * self.grid_size
-        )
+        return self.food_required / self.n_oases_required
+
+    @property
+    def current_food(self):
+        return sum([oasis.resource for oasis in self.oases.values()])
 
     @property
     def food_required(self):
@@ -52,16 +62,16 @@ class Model:
         else:
             oasis_spawn_factor = self.initial_n_chimps
 
-        current_food = sum([oasis.resource for oasis in self.oases.values()])
         food_required = (
             oasis_spawn_factor * self.abundance_factor * self.crew_energy_expenditure
-            - current_food
+            - self.current_food
         )
         return food_required
 
     @property
     def n_chimps(self):
         return sum([crew.crew_size for crew in self.crews.values()])
+
 
     def initialize_crews(self):
         for _ in range(self.n_crews):
@@ -110,7 +120,7 @@ class Model:
         if oases_required > 0:
             for _ in range(oases_required):
                 self.add_oasis(
-                    random.gauss(self.avg_oasis_size, self.avg_oasis_size / 3)
+                    random.gauss(self.avg_oasis_size, self.avg_oasis_size / 4)
                 )
 
     def add_oasis(self, size, pos=None):

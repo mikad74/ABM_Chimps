@@ -2,13 +2,14 @@ import numpy as np
 import random
 import sys
 import os
-from Agents.Crew import Chimp_crew
-from Model.Model import Model
 
 # Add ABM_Chimps to the path manually
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
+
+from Agents.Crew import Chimp_crew
+from Model.Model import Model
 
 
 class Type_Chimp_crew(Chimp_crew):
@@ -210,9 +211,3 @@ class Type_Model(Model):
         self.data_track[0].append(list(self.crews.values()))
         self.data_track[1].append(list(self.oases.values()))
 
-        # seasonal effect : between the 500th and 800th steps there are bigger/rarer oases
-        if 800 > len(self.data_track[0]) > 500:
-            self.resource = 2000
-
-        else:
-            self.resource = 700

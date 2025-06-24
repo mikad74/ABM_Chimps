@@ -22,11 +22,11 @@ dark_purple_cmap = LinearSegmentedColormap.from_list(
 n_sim = 200
 model = Model(
     40,
-    50,
+    20,
     4,
     cost_fight=10,
     oasis_spawn_proportional=True,
-    abundance_factor=10,
+    abundance_factor=.1,
     oasis_density=0.1,
     food_consumption_speed=0.33,
 )

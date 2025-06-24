@@ -3,18 +3,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-n_sim = 1
-sim_length = 500
+n_sim = 5
+sim_length = 10000
 t = np.linspace(1, sim_length, sim_length)
 cost_fight_values = [10, 20, 50, 100]
-abundance_values = [25, 50, 75, 100]
+abundance_values = [5.1, 5.2, 5.3, 5.5]
 n_types_names = ["Anxious", "Show-off", "Random", "Resentful"]
 n_types = len(n_types_names)
 
 fig, axs = plt.subplots(2, 2, figsize=(16, 12))
 axs = axs.flatten()
 
-for idx, cost_fight in enumerate(tqdm(abundance_values)):
+for idx, abundance in enumerate(tqdm(abundance_values)):
     data_track = []
     data_track_oases = []
     food_per_chimp_ = []
@@ -26,8 +26,9 @@ for idx, cost_fight in enumerate(tqdm(abundance_values)):
             20,
             n_types,
             cost_fight=10,
-            oasis_density=0.25,
-            abundance_factor=cost_fight / 10,
+            oasis_density=0.03,
+            abundance_factor=abundance,
+            oasis_spawn_proportional=False,
         )
         for j in range(sim_length):
             model.run()
@@ -62,7 +63,7 @@ for idx, cost_fight in enumerate(tqdm(abundance_values)):
         linestyle=":",
         color="orange",
     )
-    axs[idx].set_title(f"cost_fight = {cost_fight}")
+    axs[idx].set_title(f"cost_fight = {abundance}")
     axs[idx].set_xlabel("Time")
     # axs[idx].axvline(500, color='black', linestyle='--')
     # axs[idx].axvline(800, color='black', linestyle='--')
