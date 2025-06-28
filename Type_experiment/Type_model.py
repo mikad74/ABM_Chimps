@@ -14,7 +14,7 @@ from Agents.Oasis import Oasis
 from Agents.Crew import Chimp_crew
 
 class Type_Chimp_crew(Chimp_crew):
-    def __init__(self, id, pos, crew_size=10, initial_energy=300, strat=None, ram = 10):
+    def __init__(self, id, pos, crew_size=10, initial_energy=100, strat=None, ram = 5):
         super().__init__(id, pos, crew_size, initial_energy)
         self.strat = strat
         self.type = None
@@ -22,17 +22,19 @@ class Type_Chimp_crew(Chimp_crew):
         self.recent_history = [0 for _ in range(ram)]
 
 class Type_Model:
-    def __init__(self, n_crews, n_oases, n_types, grid_size, resource = 150, cost_fight = 10, oasis_spawn_chance=.05):
+    def __init__(self, n_crews, n_oases, n_types, grid_size, resource_per_oasis = 150, cost_fight = 10, resource_constant = 100, seasons = False, flexible = 2):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
         grid_size(int): length of the edge of the square grid
         '''
+        self.seasons = seasons
+        self.flex = flexible
+        self.resource_constant = resource_constant
         self.id_gen = count()
         self.grid_size = grid_size
-        self.oasis_spawn_chance = oasis_spawn_chance
         self.n_crews = n_crews
-        self.resource = resource
+        self.resource = resource_per_oasis
         self.crews = {}
         self.oases = {}
         for i in range(n_crews):
@@ -58,8 +60,6 @@ class Type_Model:
         self.crews[id] = new_crew
         return new_crew
     
-
-
     def remove_chimp_crews(self):
         to_remove = [key for key, crew in self.crews.items() if crew.energy <= 0]
         for key in to_remove:
@@ -78,7 +78,7 @@ class Type_Model:
             while any(oasis.pos == pos for oasis in self.oases.values()):
                 pos = (np.random.randint(0,self.grid_size), np.random.randint(0,self.grid_size))
 
-        resource = random.randint(self.resource // 2, self.resource * 3 //2)
+        resource = random.randint(int(self.resource) // 2, int(self.resource) * 3 // 2)
         new_oasis = Oasis(id, pos, resource)
         self.oases[id] = new_oasis
         return new_oasis
@@ -88,9 +88,9 @@ class Type_Model:
         grid = np.zeros((self.grid_size, self.grid_size), dtype='f')
         
         for oasis in self.oases.values():
-            grid[oasis.X, oasis.Y] = 1
+            grid[oasis.X, oasis.Y] = 50
         for crew in self.crews.values():
-            grid[crew.X, crew.Y] += 2
+            grid[crew.X, crew.Y] += crew.strat + 1
         self.grid = grid
 
 
@@ -107,7 +107,7 @@ class Type_Model:
             del self.oases[id]
 
         tot_res = sum([oasis.resource for oasis in self.oases.values()])
-        required_resource = 100 * self.n_crews
+        required_resource = self.resource_constant * self.n_crews
         missing_resource = required_resource - tot_res
 
         if missing_resource > 0:
@@ -158,10 +158,10 @@ class Type_Model:
                             c.type = 0
                         elif c.strat == 1: # show-off type
                             c.type = 1
-                        elif c.strat == 3: # flexible type
+                        elif c.strat == 4: # flexible type
                             w = sum(c.recent_history)/len(c.recent_history)
-                            c.type = random.choice(c.recent_history)
-                        elif c.strat == 4 and c.last_opp_type != -1: # resentful type
+                            c.type = random.choices([0,1], weights=[1-w**self.flex, w**self.flex])[0]
+                        elif c.strat == 3 and c.last_opp_type != -1: # resentful type
                             c.type = c.last_opp_type
                         else: # random type
                             c.type = random.choice([0,1])
@@ -210,8 +210,9 @@ class Type_Model:
         self.data_track[1].append(list(self.oases.values()))
 
         # seasonal effect : between the 500th and 800th steps there are bigger/rarer oases
-        if len(self.data_track[0]) in [500, 1100, 1700]:
-            self.resource *= 2
-        
-        if len(self.data_track[0]) == [800, 1400]:
-            self.resource //= 2
+        if self.seasons:
+            if len(self.data_track[0]) in [500, 1100, 1700]:
+                self.resource *= 2
+            
+            if len(self.data_track[0]) == [800, 1400]:
+                self.resource //= 2
