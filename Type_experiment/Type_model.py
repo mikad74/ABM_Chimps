@@ -14,7 +14,7 @@ from Agents.Oasis import Oasis
 from Agents.Crew import Chimp_crew
 
 class Type_Chimp_crew(Chimp_crew):
-    def __init__(self, id, pos, crew_size=10, initial_energy=100, strat=None):
+    def __init__(self, id, pos, crew_size=10, initial_energy=300, strat=None):
         super().__init__(id, pos, crew_size, initial_energy)
         self.strat = strat
         self.type = None
@@ -23,12 +23,12 @@ class Type_Chimp_crew(Chimp_crew):
     def intimidate(self, other_crew, prob_win, oasis, cost_bluff=0):
         won = 0
         if random.random() > prob_win: # crew loses
-            self.unaccessible_oases.add(oasis) 
+            self.unaccessible_oases.add(oasis.id) 
 
         else: # crew wins
             other_crew.oasis = None
             other_crew.pos = self.pos[:]
-            other_crew.unaccessible_oases.add(oasis) 
+            other_crew.unaccessible_oases.add(oasis.id) 
             self.pos = oasis.pos
             self.oasis = oasis
             won = 'won'
@@ -53,11 +53,11 @@ class Type_Chimp_crew(Chimp_crew):
 
         # assign consequences
         if lose:
-            self.unaccessible_oases.add(oasis)        
+            self.unaccessible_oases.add(oasis.id)        
         else: # crew wins
             other_crew.oasis = None
             other_crew.pos = self.pos[:]
-            other_crew.unaccessible_oases.add(oasis) 
+            other_crew.unaccessible_oases.add(oasis.id) 
             self.pos = oasis.pos
             self.oasis = oasis
 
@@ -68,7 +68,7 @@ class Type_Chimp_crew(Chimp_crew):
     def reclaim(self, other_crew, oasis):
         other_crew.oasis = None
         other_crew.pos = self.pos[:]
-        other_crew.unaccessible_oases.add(oasis) 
+        other_crew.unaccessible_oases.add(oasis.id) 
         self.pos = oasis.pos
         self.oasis = oasis
 
@@ -196,7 +196,7 @@ class Type_Model:
                     for c in [crew, other_crew]:
                         if c.strat == 0: # anxious type
                             c.type = 0
-                        elif c.strat == 1: # show-off type
+                        elif c.strat == 1: # show-off type / one-stage aggressive type
                             c.type = 1
                         elif c.strat == 2: # random type
                             c.type = random.choice([0,1])
@@ -223,7 +223,7 @@ class Type_Model:
                     if agressive:
                                                 
                         if crew.type == 0: #if anxious
-                            crew.unaccessible_oases.add(oasis) #retreat
+                            crew.unaccessible_oases.add(oasis.id) #retreat
                         
                         elif other_crew.type == 0: #if the other one is anxious
                             crew.reclaim(other_crew, oasis) #always get their oasis
@@ -232,27 +232,21 @@ class Type_Model:
                             result = crew.intimidate(other_crew, prob_win, oasis, cost_bluff = cost_bluff) # prob 1/2 to win, but no/lower cost 
                         
                             #if the other one is no fighter, it just ends here, whatever the result was
-                            #if the defender is a fighter, and they lost bluffing, then there is a fight    
+                            #if the defender is a fighter, and they lost bluffing, then there is a chance for a fight    
                             if other_crew.type == 2 and result: #the crew won -> the other_crew lost
-                                crew.fight(other_crew, prob_win, oasis, self.cost_fight, constant_win=constant_win)
+                                if random.random() > 0.5:
+                                    crew.fight(other_crew, prob_win, oasis, self.cost_fight, constant_win=constant_win)
                         
                         elif crew.type == 2:
                             crew.fight(other_crew, prob_win, oasis, self.cost_fight, constant_win=constant_win) #nothing depends on the defender, the crew just attacks
                                     
                     #*******ORIGINAL VERSION BY BALTHAZAR, practically only type 0 and type 1*********
 
-                    #Also accommodates primitive agressive type, corresponding to visualisation "with_agressive"
-                    #type 0 + type 1 corresponds to "without_agressive"
-
                     else:
                         if crew.type == 0 or crew.type < other_crew.type: # crew gets intimidated out by the defending crew
-                            crew.unaccessible_oases.add(oasis)                 
+                            crew.unaccessible_oases.add(oasis.id)                 
             
                         elif crew.type == other_crew.type: # fight when same type
-                            crew.fight(other_crew, prob_win, oasis, self.cost_fight)
-                        
-                        elif crew.type == 4 or other_crew.type == 4: 
-                            # one of them is agressive and none is anxious
                             crew.fight(other_crew, prob_win, oasis, self.cost_fight)
                             
                         else: # crew.type > other_crew.type
@@ -267,7 +261,7 @@ class Type_Model:
                 crew.consume()
 
         for crew in self.crews.values():
-            crew.energy -= crew.crew_size
+            crew.energy -= crew.crew_size # expenditure rate = 1
             
         self.remove_chimp_crews()
 

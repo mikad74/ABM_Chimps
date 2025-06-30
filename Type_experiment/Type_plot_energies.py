@@ -3,6 +3,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import colors
 
+#***********to match the colorcode of the one-stage game**************
+cmap = plt.get_cmap('tab10')
+blauw = cmap(0)
+oranje = cmap(1)
+groen = cmap(2)
+rood = cmap(3)
+paars = cmap(4)
+
 def quantile_counts_by_strategy(data_track, n_types, sim_length, q_low=0.33, q_high=0.66):
     """
     Returns three arrays of shape (n_types, sim_length) with the **average per-run**
@@ -57,7 +65,7 @@ for idx, cost_fight in enumerate(cost_fight_values):
     for i in range(n_sim):
         model = Model(10* n_types, 20, n_types, 20, cost_fight=cost_fight)
         for j in range(sim_length):
-            model.run(agressive=True, constant_win=False, cost_bluff=cost_fight_values[0]) # default is no arguments
+            model.run(agressive=True, constant_win=False) # default is no arguments
         data_track.append(model.data_track[0])
 
     n_types_over_time = []
@@ -76,14 +84,13 @@ for idx, cost_fight in enumerate(cost_fight_values):
 
     low_c, mid_c, high_c = quantile_counts_by_strategy(
         data_track, n_types, sim_length)
-
-    cmap = plt.get_cmap('tab10')
+ 
     for s in range(n_types):
-        base = cmap(s)
+        base = (blauw, paars, groen, rood, oranje)[s]
         axs2[idx].plot(t, high_c[s], color=base, label=f'{n_types_names[s]} – high')
         axs2[idx].plot(t, mid_c[s], color=base, linestyle='--', label=f'{n_types_names[s]} – mid')
         axs2[idx].plot(t, low_c[s], color=base, linestyle=':', label=f'{n_types_names[s]} – low')
-    axs2[idx].set_title(f'Absolute counts by energy (cost_fight = {cost_fight})')
+    axs2[idx].set_title(f'Counts by energy level (cost_fight = {cost_fight})')
     axs2[idx].set_xlabel('Time')
     axs2[idx].set_ylabel('Avg. # agents per simulation')
     axs2[idx].legend(ncol=3, fontsize='small')
@@ -91,7 +98,7 @@ for idx, cost_fight in enumerate(cost_fight_values):
 #fig.tight_layout()
 #fig.savefig("with_agressive_cost_win_F_cB10.png", dpi=300)
 fig2.tight_layout()
-fig2.savefig("with_agressive_cost_win_F_cB10_energies.png", dpi=300)
+fig2.savefig("with_agressive_cost_win_F_energies_en300.png", dpi=300)
 
 '''
 Naming of the plots:
@@ -100,7 +107,10 @@ and never really attempting to show off (because cost of fight always deduced)
 - with agressive: adding "agressive" type which is kind of third layer, it always fights, 
 but the "show-off" also fights, no distinction between bluff and fight
 - with agressive sophisticated: distinction between bluffing and fighting is introduced, no cost involved in bluffing, 1/2 chance of winning,
-cost involved in fighting, same chance of winning, if other agent is agressive, you'd have to fight anyways
+cost involved in fighting, same chance of winning, if other agent is agressive, you'd have to fight with prob 1/2
 - with agressive constant win False: all the same as for "with agressive sophisticated", add conditioning the probability of
 winning the fight on the energy of the crews
+- with aggressive ... energies - visualize agents with low, medium and high energy reserves per type separately to trace if
+energy level has an effect on survival
+- with aggressive ... cB num - with cost of bluff at the level of num
 '''
