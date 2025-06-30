@@ -3,6 +3,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import colors
 
+#***********ADJUST THESE************
+name_graphs = "without_aggressive_en300.png" #give a name to the .png with graphs of the results
+run_args = dict(
+    agressive = False, # default for base model with only 4 types, adds Show-Off if True
+    constant_win=True, # default for constant prob_win that is independent of size, makes fight dependent on size if False
+    cost_bluff = 0 # default is no cost, but you can pass some cost to see if the dynamics changes
+)
+
 #***********to match the colorcode of the one-stage game**************
 cmap = plt.get_cmap('tab10')
 blauw = cmap(0)
@@ -65,7 +73,7 @@ for idx, cost_fight in enumerate(cost_fight_values):
     for i in range(n_sim):
         model = Model(10* n_types, 20, n_types, 20, cost_fight=cost_fight)
         for j in range(sim_length):
-            model.run(agressive=True, constant_win=False) # default is no arguments
+            model.run(**run_args) # default is no arguments
         data_track.append(model.data_track[0])
 
     n_types_over_time = []
@@ -98,7 +106,7 @@ for idx, cost_fight in enumerate(cost_fight_values):
 #fig.tight_layout()
 #fig.savefig("with_agressive_cost_win_F_cB10.png", dpi=300)
 fig2.tight_layout()
-fig2.savefig("with_agressive_cost_win_F_energies_en300.png", dpi=300)
+fig2.savefig(name_graphs, dpi=300)
 
 '''
 Naming of the plots:

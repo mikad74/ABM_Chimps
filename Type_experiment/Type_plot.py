@@ -4,6 +4,15 @@ import numpy as np
 from matplotlib import colors
 from pathlib import Path
 
+#***********ADJUST THESE************
+out_text_name = "without_aggressive.txt" #give a good name to your output, suggested convention - see at the end of this .py
+name_graphs = "without_aggressive_en300.png" #give a name to the .png with graphs of the results
+run_args = dict(
+    agressive = False, # default for base model with only 4 types, adds Show-Off if True
+    constant_win=True, # default for constant prob_win that is independent of size, makes fight dependent on size if False
+    cost_bluff = 0 # default is no cost, but you can pass some cost to see if the dynamics changes
+)
+
 #***********to match the colorcode of the one-stage game**************
 cmap = plt.get_cmap('tab10')
 blauw = cmap(0)
@@ -21,7 +30,7 @@ cost_fight_values = [10, 20, 50, 100]
 n_types = 5
 n_types_names = ['Anxious', 'Show-off', 'Random', 'Resentful', 'Aggressive']
 
-out_file = Path("without_aggressive.txt").open("w") #give a good name to your output, suggested convention - see below
+out_file = Path(out_text_name).open("w") 
 fig, axs = plt.subplots(2, 2, figsize=(16, 12))
 axs = axs.flatten()
 
@@ -31,7 +40,7 @@ for idx, cost_fight in enumerate(cost_fight_values):
     for i in range(n_sim):
         model = Model(10* n_types, 20, n_types, 20, cost_fight=cost_fight)
         for j in range(sim_length):
-            model.run() # default is no arguments
+            model.run(**run_args) 
         data_track.append(model.data_track[0])
 
 
@@ -61,7 +70,7 @@ for idx, cost_fight in enumerate(cost_fight_values):
     axs[idx].legend()
 
 plt.tight_layout()
-plt.savefig("without_aggressive_en300.png", dpi=300) #naming convention below
+plt.savefig(name_graphs, dpi=300) #naming convention below
 plt.show()
 
 '''
