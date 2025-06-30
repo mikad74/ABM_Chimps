@@ -22,7 +22,7 @@ class Type_Chimp_crew(Chimp_crew):
         self.recent_history = [0 for _ in range(ram)]
 
 class Type_Model:
-    def __init__(self, n_crews, n_oases, n_types, grid_size, resource_per_oasis = 150, cost_fight = 10, resource_constant = 100, seasons = False, flexible = 2):
+    def __init__(self, n_crews, n_oases, n_types, grid_size, resource_per_oasis = 150, cost_fight = 10, resource_constant = 100, seasons = False, flexible = 2, ram = 5):
         '''
         n_crews (int): number of initial chimp crews
         n_oases (int): number of initial oases
@@ -30,6 +30,7 @@ class Type_Model:
         '''
         self.seasons = seasons
         self.flex = flexible
+        self.ram = ram
         self.resource_constant = resource_constant
         self.id_gen = count()
         self.grid_size = grid_size
@@ -56,7 +57,7 @@ class Type_Model:
             while any(crew.pos == pos for crew in self.crews.values()):
                 pos = (np.random.randint(0,self.grid_size),np.random.randint(0,self.grid_size))
         id = next(self.id_gen)
-        new_crew = Type_Chimp_crew(id, pos, strat=strat)
+        new_crew = Type_Chimp_crew(id, pos, strat=strat, ram = self.ram)
         self.crews[id] = new_crew
         return new_crew
     
